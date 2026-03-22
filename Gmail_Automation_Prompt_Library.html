@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gmail Automation Prompt Library — Open Source by IQVIA Director Project</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2eb;
+  --ink: #1a1410;
+  --ink2: #3d3530;
+  --ink3: #7a6f65;
+  --rule: #d4cec4;
+  --rule2: #c8c0b4;
+  --accent: #c0392b;
+  --accent2: #e74c3c;
+  --accent-pale: rgba(192,57,43,0.08);
+  --gold: #b7860b;
+  --gold-pale: rgba(183,134,11,0.1);
+  --teal: #0e7490;
+  --teal-pale: rgba(14,116,144,0.08);
+  --green: #166534;
+  --green-pale: rgba(22,101,52,0.08);
+  --purple: #581c87;
+  --purple-pale: rgba(88,28,135,0.08);
+  --surface: #fff;
+  --surface2: #faf8f4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.6;
+}
+
+/* ── MASTHEAD ── */
+.masthead {
+  background: var(--ink);
+  color: #f5f2eb;
+  padding: 0;
+  border-bottom: 4px solid var(--accent);
+  position: relative;
+  overflow: hidden;
+}
+.masthead::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 39px,
+    rgba(245,242,235,0.04) 39px,
+    rgba(245,242,235,0.04) 40px
+  );
+}
+.masthead-inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 48px 40px;
+}
+.masthead-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.masthead-kicker::before, .masthead-kicker::after {
+  content: '';
+  height: 1px;
+  background: rgba(245,242,235,0.2);
+  flex: 0 0 40px;
+}
+.masthead-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: #f5f2eb;
+  margin-bottom: 12px;
+}
+.masthead-title em { color: var(--accent2); font-style: italic; }
+.masthead-sub {
+  font-size: 16px;
+  color: rgba(245,242,235,0.6);
+  font-weight: 300;
+  max-width: 600px;
+  line-height: 1.6;
+}
+.masthead-meta {
+  display: flex;
+  gap: 32px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(245,242,235,0.15);
+  flex-wrap: wrap;
+}
+.meta-item { }
+.meta-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,242,235,0.4); margin-bottom: 3px; }
+.meta-val { font-size: 14px; color: rgba(245,242,235,0.85); font-weight: 500; }
+
+/* ── LAYOUT ── */
+.page { max-width: 1200px; margin: 0 auto; padding: 0 48px 80px; }
+
+/* ── INDEX BAR ── */
+.index-bar {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-top: none;
+  background: var(--surface);
+  overflow-x: auto;
+  margin-bottom: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(26,20,16,0.06);
+}
+.index-item {
+  padding: 14px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  cursor: pointer;
+  border-right: 1px solid var(--rule);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.index-item:hover { background: var(--accent-pale); color: var(--accent); }
+.index-item .cat-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── CHAPTER ── */
+.chapter { margin-bottom: 72px; scroll-margin-top: 60px; }
+.chapter-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--ink);
+}
+.chapter-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--rule2);
+  font-style: italic;
+  flex-shrink: 0;
+}
+.chapter-info { flex: 1; }
+.chapter-cat {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.chapter-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.chapter-desc {
+  font-size: 14px;
+  color: var(--ink3);
+  margin-top: 6px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+.chapter-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink3);
+  align-self: flex-start;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+/* ── PROMPT CARD ── */
+.prompt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.prompt-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.prompt-card:hover {
+  box-shadow: 0 4px 20px rgba(26,20,16,0.1);
+  transform: translateY(-1px);
+}
+.prompt-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.pc-accent   .prompt-card::before, .prompt-card.accent   { --stripe: var(--accent); }
+.prompt-card.accent::before   { background: var(--accent); }
+.prompt-card.gold::before     { background: var(--gold); }
+.prompt-card.teal::before     { background: var(--teal); }
+.prompt-card.green::before    { background: var(--green); }
+.prompt-card.purple::before   { background: var(--purple); }
+.prompt-card.ink::before      { background: var(--ink); }
+
+.pc-header {
+  padding: 20px 24px 16px 28px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pc-title-wrap { flex: 1; }
+.pc-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--ink3);
+  margin-bottom: 4px;
+}
+.pc-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pc-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid;
+}
+.badge-accent  { color: var(--accent);  border-color: rgba(192,57,43,0.3);  background: var(--accent-pale); }
+.badge-gold    { color: var(--gold);    border-color: rgba(183,134,11,0.3); background: var(--gold-pale); }
+.badge-teal    { color: var(--teal);    border-color: rgba(14,116,144,0.3); background: var(--teal-pale); }
+.badge-green   { color: var(--green);   border-color: rgba(22,101,52,0.3);  background: var(--green-pale); }
+.badge-purple  { color: var(--purple);  border-color: rgba(88,28,135,0.3);  background: var(--purple-pale); }
+.badge-ink     { color: var(--ink2);    border-color: var(--rule2);         background: var(--surface2); }
+
+.pc-body { padding: 20px 24px 20px 28px; }
+.pc-desc {
+  font-size: 13px;
+  color: var(--ink3);
+  margin-bottom: 16px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.pc-use-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pc-use-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+/* ── PROMPT CODE BLOCK ── */
+.prompt-block {
+  background: var(--ink);
+  color: #e8e2d8;
+  padding: 20px 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  position: relative;
+  margin-bottom: 12px;
+}
+.prompt-block.user-prompt {
+  background: var(--surface2);
+  color: var(--ink2);
+  border: 1px solid var(--rule);
+  font-size: 11px;
+}
+
+.pb-label {
+  position: absolute;
+  top: 10px; right: 12px;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(232,226,216,0.4);
+}
+.pb-label.dark { color: var(--ink3); }
+
+/* Syntax highlights */
+.ph-comment { color: #6b7280; }
+.ph-key     { color: #93c5fd; }
+.ph-str     { color: #fcd34d; }
+.ph-val     { color: #86efac; }
+.ph-bracket { color: #f9a8d4; }
+.ph-section { color: #c4b5fd; font-weight: 500; }
+.ph-rule    { color: var(--accent2); font-weight: 600; }
+.ph-var     { color: #67e8f9; }
+
+/* ── VARIABLES TABLE ── */
+.vars-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.vars-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--rule);
+  color: var(--ink3);
+}
+.vars-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  vertical-align: top;
+  color: var(--ink2);
+  line-height: 1.5;
+}
+.vars-table td:first-child {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--teal);
+  white-space: nowrap;
+  background: var(--teal-pale);
+}
+
+/* ── COPY BUTTON ── */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.copy-btn:hover { border-color: var(--ink3); color: var(--ink); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); background: var(--green-pale); }
+
+/* ── FOOTER ── */
+.footer-strip {
+  background: var(--ink);
+  color: rgba(245,242,235,0.5);
+  padding: 32px 48px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.footer-strip strong { color: rgba(245,242,235,0.85); }
+
+/* ── DIVIDER ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 48px 0 40px;
+  color: var(--ink3);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chapter { animation: fadeUp 0.4s ease forwards; opacity: 0; }
+.chapter:nth-child(1) { animation-delay: 0.05s; }
+.chapter:nth-child(2) { animation-delay: 0.1s; }
+.chapter:nth-child(3) { animation-delay: 0.15s; }
+.chapter:nth-child(4) { animation-delay: 0.2s; }
+.chapter:nth-child(5) { animation-delay: 0.25s; }
+.chapter:nth-child(6) { animation-delay: 0.3s; }
+.chapter:nth-child(7) { animation-delay: 0.35s; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px 60px; }
+  .masthead-inner { padding: 32px 20px 28px; }
+  .footer-strip { padding: 24px 20px; }
+  .chapter-num { font-size: 40px; }
+  .chapter-title { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-kicker">Open Source Prompt Library · Gmail Automation</div>
+    <h1 class="masthead-title">The <em>Gmail Automation</em><br>Prompt Bible</h1>
+    <p class="masthead-sub">Production-grade AI prompts for Gmail automation engineers. 40+ prompts across 7 categories — from basic triage to enterprise clinical-grade orchestration.</p>
+    <div class="masthead-meta">
+      <div class="meta-item">
+        <div class="meta-label">Total Prompts</div>
+        <div class="meta-val">40+ prompts</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Categories</div>
+        <div class="meta-val">7 modules</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Compatible With</div>
+        <div class="meta-val">Claude · GPT-4o · Gemini</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">License</div>
+        <div class="meta-val">MIT — Free to use &amp; modify</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Origin Project</div>
+        <div class="meta-val">IQVIA Gmail Intelligence Hub</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INDEX BAR -->
+<div class="index-bar">
+  <a class="index-item" href="#cat-01"><span class="cat-dot" style="background:#c0392b"></span>Classification</a>
+  <a class="index-item" href="#cat-02"><span class="cat-dot" style="background:#b7860b"></span>Reply Drafting</a>
+  <a class="index-item" href="#cat-03"><span class="cat-dot" style="background:#0e7490"></span>Summarization</a>
+  <a class="index-item" href="#cat-04"><span class="cat-dot" style="background:#166534"></span>Extraction</a>
+  <a class="index-item" href="#cat-05"><span class="cat-dot" style="background:#581c87"></span>Routing &amp; Triage</a>
+  <a class="index-item" href="#cat-06"><span class="cat-dot" style="background:#1a1410"></span>Sentiment &amp; Intent</a>
+  <a class="index-item" href="#cat-07"><span class="cat-dot" style="background:#c0392b"></span>Enterprise / Domain</a>
+</div>
+
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 1 — CLASSIFICATION                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-01">
+  <div class="chapter-header">
+    <div class="chapter-num">01</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--accent)">Module One</div>
+      <div class="chapter-title">Email Classification &amp; Priority Scoring</div>
+      <div class="chapter-desc">Prompts that classify, score, and prioritize incoming emails. Use these as your foundation — classification is always the first step before any other action is taken.</div>
+    </div>
+    <div class="chapter-count">7 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-01 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-001 · Classification</div>
+          <div class="pc-title">Universal Email Priority Classifier</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-ink">System Prompt</span>
+          <span class="badge badge-accent">Foundation</span>
+          <span class="badge badge-ink">JSON Output</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">The workhorse classification prompt. Works for any industry or role. Returns structured JSON with priority, urgency, SLA, and intent. Designed as a drop-in system prompt for any Gmail automation pipeline.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">ROLE:</span>
+You are an expert email intelligence system. Your task is to classify incoming emails with precision and return structured JSON.
+
+<span class="ph-section">PRIORITY CLASSES:</span>
+<span class="ph-rule">CRITICAL</span> — Requires response within 2 hours. Legal notices, regulatory authority, C-suite from enterprise clients, patient/user safety, hard deadlines &lt; 24hrs.
+<span class="ph-rule">HIGH</span>     — Requires response within 8 hours. Senior stakeholders, active project escalations, budget approvals, executive meeting requests.
+<span class="ph-rule">MEDIUM</span>   — Requires response within 24 hours. Peer-level communication, vendor updates, project status, internal coordination.
+<span class="ph-rule">LOW</span>      — Requires response within 5 days. Staff-level updates, informational reports, non-time-sensitive FYIs.
+<span class="ph-rule">NOISE</span>    — No response needed. Newsletters, marketing, automated system alerts, mass CC emails.
+
+<span class="ph-section">CLASSIFICATION SIGNALS (evaluate all):</span>
+1. Sender authority — title, domain, organization type
+2. Explicit urgency language — "urgent", "ASAP", "deadline", "escalation"
+3. Subject line keywords — deadlines, action words, regulatory terms
+4. Email length and structure — single question vs. detailed brief
+5. Whether recipient is on TO: (direct) vs. CC: (informational)
+6. Presence of attachments — contracts, legal docs raise priority
+7. Thread depth — new thread vs. ongoing conversation
+8. Time sensitivity — stated or implied deadlines
+
+<span class="ph-section">OVERRIDE RULES (always apply):</span>
+• Any government/regulatory domain → minimum CRITICAL
+• Any mention of "legal action", "warning", "breach", "audit" → minimum HIGH
+• Board member / CEO sender → minimum HIGH
+• Explicit deadline &lt; 24 hours → minimum HIGH
+• Automated sender (noreply@, notifications@) → maximum LOW unless regulatory
+
+<span class="ph-section">OUTPUT — return ONLY valid JSON:</span>
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"priority_class"</span>: <span class="ph-str">"CRITICAL|HIGH|MEDIUM|LOW|NOISE"</span>,
+  <span class="ph-key">"urgency_score"</span>: <span class="ph-val">1-10</span>,
+  <span class="ph-key">"sla_hours"</span>: <span class="ph-val">2|8|24|120|null</span>,
+  <span class="ph-key">"requires_response"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"intent"</span>: <span class="ph-str">"ACTION_REQUIRED|APPROVAL|FYI|MEETING|CONTRACT|COMPLAINT|INTRODUCTION|OTHER"</span>,
+  <span class="ph-key">"classification_reason"</span>: <span class="ph-str">"one sentence"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>,
+  <span class="ph-key">"action_items"</span>: [<span class="ph-str">"item1"</span>, <span class="ph-str">"item2"</span>]
+<span class="ph-bracket">}</span></div>
+        <div class="pc-use-label">User Prompt Template</div>
+        <div class="prompt-block user-prompt"><span class="pb-label dark">USER</span>Classify this email:
+
+FROM: {{sender_name}} &lt;{{sender_email}}&gt;
+TO: {{recipient_email}}
+CC: {{cc_list}}
+DATE: {{received_at}}
+SUBJECT: {{subject}}
+ATTACHMENTS: {{attachment_list}}
+
+BODY:
+{{email_body}}</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p001')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-02 -->
+    <div class="prompt-card gold">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-002 · Classification</div>
+          <div class="pc-title">Sender Seniority &amp; Authority Detector</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-gold">Pre-Processing</span>
+          <span class="badge badge-ink">JSON Output</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Dedicated to extracting sender authority signals from email context alone — no LinkedIn or external API needed. Use this as a preprocessing step before classification to enrich the sender tier field.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">TASK:</span>
+Determine the seniority and authority level of an email sender based only on information available in the email (headers, signature, email body, domain).
+
+<span class="ph-section">SENDER TIER DEFINITIONS:</span>
+<span class="ph-rule">C_SUITE</span>       — CEO, CFO, CMO, CTO, CIO, COO, President, Chairman, Board Member, EVP
+<span class="ph-rule">VP</span>             — Vice President, SVP, EVP, Global Head, Head of [Function]
+<span class="ph-rule">DIRECTOR</span>      — Director, Senior Director, Associate Director
+<span class="ph-rule">MANAGER</span>       — Manager, Senior Manager, Team Lead, Principal
+<span class="ph-rule">SPECIALIST</span>    — Analyst, Specialist, Coordinator, Associate, Engineer
+<span class="ph-rule">GOV_OFFICIAL</span>  — Government email domain (.gov, .gov.uk, .go.jp, etc.)
+<span class="ph-rule">LEGAL</span>         — Law firm domain, "Esq.", "Attorney", "Counsel", "Partner at [Firm]"
+<span class="ph-rule">ACADEMIC</span>      — University domain (.edu, .ac.uk), Professor, Dr., Researcher
+<span class="ph-rule">UNKNOWN</span>       — Cannot determine from available information
+
+<span class="ph-section">DETECTION SOURCES — check all:</span>
+1. Email signature block (most reliable)
+2. From name patterns ("John Smith, CFO" or "Dr. Jane Lee")
+3. Domain type (.gov = government, .edu = academic, law firm domains)
+4. Email body — self-introduction language
+5. Footer/disclaimer text (often contains title and company)
+6. CC list — if CCing their EA/admin, sender is likely senior
+
+<span class="ph-section">CONFIDENCE RULES:</span>
+• Explicit title in signature → confidence: 0.95+
+• Title inferred from domain alone → confidence: 0.6-0.75
+• No signals → UNKNOWN, confidence: 0.3
+
+Return JSON only:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"sender_tier"</span>: <span class="ph-str">"C_SUITE|VP|DIRECTOR|MANAGER|SPECIALIST|GOV_OFFICIAL|LEGAL|ACADEMIC|UNKNOWN"</span>,
+  <span class="ph-key">"detected_title"</span>: <span class="ph-str">"exact title if found, else null"</span>,
+  <span class="ph-key">"detected_company"</span>: <span class="ph-str">"company name if found, else null"</span>,
+  <span class="ph-key">"detection_source"</span>: <span class="ph-str">"SIGNATURE|NAME|DOMAIN|BODY|UNKNOWN"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>,
+  <span class="ph-key">"notes"</span>: <span class="ph-str">"brief note on how tier was determined"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p002')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-03 -->
+    <div class="prompt-card teal">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-003 · Classification</div>
+          <div class="pc-title">Regulatory &amp; Compliance Email Detector</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-teal">Compliance</span>
+          <span class="badge badge-accent">High Stakes</span>
+          <span class="badge badge-ink">JSON Output</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Specialized detector for regulatory, legal, and compliance emails that require elevated response protocols. Critical for healthcare, pharma, finance, and legal industries. Extracts specific regulatory instruments and deadlines.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">TASK:</span>
+Detect regulatory, legal, and compliance signals in emails with precision. These emails carry the highest business and legal risk and must be identified reliably.
+
+<span class="ph-section">REGULATORY SIGNAL TAXONOMY:</span>
+
+<span class="ph-rule">GOVERNMENT_AUTHORITY</span>
+  Signals: .gov / .gov.uk / .go.jp domain, mentions of "FDA", "EMA", "MHRA", "SEC", "FTC", "DOJ", 
+  "Health Canada", "TGA", "PMDA", regulatory reference numbers (IND-, NDA-, CRF-, EMA/CHMP/)
+
+<span class="ph-rule">LEGAL_ACTION</span>
+  Signals: "Notice of Claim", "Cease and Desist", "litigation", "subpoena", "legal proceedings",
+  "without prejudice", "demand letter", "breach of contract", law firm domain
+
+<span class="ph-rule">AUDIT_INSPECTION</span>
+  Signals: "inspection", "audit", "GCP", "GMP", "GLP", "site visit", "readiness assessment",
+  "Form 483", "Warning Letter", "inspection announcement"
+
+<span class="ph-rule">SUBMISSION_DEADLINE</span>
+  Signals: "due by", "submission deadline", "clock-stop", "Day 120", "Day 150", "PDUFA",
+  "IND annual report", "PSUR", "PBRER", "expedited timeline"
+
+<span class="ph-rule">SAFETY_SIGNAL</span>
+  Signals: "adverse event", "serious adverse event", "SAE", "safety signal", "patient safety",
+  "product recall", "field safety", "pharmacovigilance", "SUSAR"
+
+<span class="ph-rule">NONE</span>
+  No detectable regulatory or compliance signals
+
+<span class="ph-section">EXTRACTION RULES:</span>
+• Extract ALL dates that appear to be deadlines
+• Extract ALL reference numbers (IND numbers, case IDs, docket numbers)
+• Extract the specific regulation or statute referenced if present
+• Flag if response requires legal counsel involvement
+
+Return JSON only:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"regulatory_signal"</span>: <span class="ph-str">"GOVERNMENT_AUTHORITY|LEGAL_ACTION|AUDIT_INSPECTION|SUBMISSION_DEADLINE|SAFETY_SIGNAL|NONE"</span>,
+  <span class="ph-key">"is_regulatory"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"requires_legal_review"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"requires_immediate_escalation"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"extracted_deadlines"</span>: [<span class="ph-str">"date1"</span>, <span class="ph-str">"date2"</span>],
+  <span class="ph-key">"reference_numbers"</span>: [<span class="ph-str">"ref1"</span>, <span class="ph-str">"ref2"</span>],
+  <span class="ph-key">"regulations_cited"</span>: [<span class="ph-str">"reg1"</span>],
+  <span class="ph-key">"risk_level"</span>: <span class="ph-str">"CRITICAL|HIGH|MEDIUM|LOW"</span>,
+  <span class="ph-key">"escalate_to"</span>: <span class="ph-str">"Legal|Compliance|C-Suite|null"</span>,
+  <span class="ph-key">"summary"</span>: <span class="ph-str">"one sentence on the regulatory nature of this email"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p003')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-04 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-004 · Classification</div>
+          <div class="pc-title">Email Noise vs. Signal Separator</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-ink">Cost Optimization</span>
+          <span class="badge badge-green">Pre-Filter</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Run this BEFORE expensive classification prompts to filter true noise. Saves 30–50% of API costs in high-volume pipelines by catching newsletters, marketing, and automated system emails early.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">TASK:</span>
+Quickly determine if this email is "signal" (requires human attention) or "noise" (can be auto-archived). Optimize for speed and cost — use the minimal analysis necessary.
+
+<span class="ph-section">NOISE INDICATORS (any one → likely NOISE):</span>
+• Sender is noreply@, no-reply@, notifications@, alerts@, newsletter@, news@, mailer-daemon@, postmaster@
+• Subject starts with: "[Automated]", "Unsubscribe", "Re: [Auto-Reply]", "Out of Office"
+• Body contains: "unsubscribe", "view in browser", "email preferences", "©2025" in marketing context
+• Sender domain is a known marketing/social platform (linkedin.com, twitter.com, facebook.com, glassdoor.com, indeed.com)
+• Email is a calendar notification, task assignment notification, or system-generated alert with no action required
+• Mass mailing indicators: "You are receiving this because", "This email was sent to"
+
+<span class="ph-section">SIGNAL INDICATORS (any one → override noise, classify as SIGNAL):</span>
+• Real human name and business email address in From
+• Contains a direct question or request addressed to the recipient by name
+• Mentions a deadline, project name, or specific ask
+• Reply from an ongoing conversation thread (In-Reply-To header present)
+• Sender domain matches known client, regulatory body, or partner
+
+<span class="ph-section">RESPOND with ONLY this JSON (no other text):</span>
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"classification"</span>: <span class="ph-str">"SIGNAL|NOISE|UNCERTAIN"</span>,
+  <span class="ph-key">"noise_reason"</span>: <span class="ph-str">"reason if NOISE, else null"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>,
+  <span class="ph-key">"proceed_to_full_analysis"</span>: <span class="ph-val">true|false</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p004')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-05 -->
+    <div class="prompt-card gold">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-005 · Classification</div>
+          <div class="pc-title">SLA &amp; Response Deadline Calculator</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-gold">SLA Engine</span>
+          <span class="badge badge-ink">JSON Output</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Extracts and calculates all response deadlines from an email — both explicit (stated dates) and implicit (industry norms, urgency language). Feeds directly into SLA monitoring systems.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">TASK:</span>
+Extract and calculate all deadline and response-time signals from this email.
+
+<span class="ph-section">DEADLINE TYPES TO DETECT:</span>
+
+<span class="ph-rule">EXPLICIT_DEADLINE</span>
+  Stated date/time: "by Friday", "before March 15", "COB today", "within 24 hours", "ASAP"
+  → Extract the exact stated deadline if possible
+
+<span class="ph-rule">REGULATORY_DEADLINE</span>  
+  Regulatory clock: "Day 120 clock-stop", "30-day response window", "PDUFA date", 
+  "submission due Q1", "annual report deadline"
+  → Identify the regulatory instrument and calculate from email date if possible
+
+<span class="ph-rule">IMPLIED_URGENCY</span>
+  Urgency without date: "urgent", "time-sensitive", "please respond as soon as possible",
+  "we're waiting on this", "blocking our team"
+  → Apply industry-standard SLA: 2 hours for CRITICAL, 8 hours for HIGH
+
+<span class="ph-rule">MEETING_DEADLINE</span>
+  Meeting or decision: "before our call tomorrow", "need this for the board meeting",
+  "presentation is Wednesday"
+  → Extract meeting date as hard deadline
+
+<span class="ph-rule">NO_DEADLINE</span>
+  No time pressure detected
+
+<span class="ph-section">SLA ASSIGNMENT LOGIC:</span>
+• REGULATORY deadline → IMMEDIATE (2hr) always
+• EXPLICIT deadline < 4hr away → IMMEDIATE  
+• EXPLICIT deadline today → SAME_DAY
+• EXPLICIT deadline tomorrow → NEXT_DAY
+• IMPLIED_URGENCY from senior stakeholder → SAME_DAY
+• MEETING_DEADLINE → NEXT_DAY minimum, SAME_DAY if meeting < 24hr
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"deadline_type"</span>: <span class="ph-str">"EXPLICIT|REGULATORY|IMPLIED|MEETING|NONE"</span>,
+  <span class="ph-key">"sla_bucket"</span>: <span class="ph-str">"IMMEDIATE|SAME_DAY|NEXT_DAY|WEEKLY|NONE"</span>,
+  <span class="ph-key">"sla_hours"</span>: <span class="ph-val">2|8|24|120|null</span>,
+  <span class="ph-key">"explicit_deadline_text"</span>: <span class="ph-str">"exact text from email, or null"</span>,
+  <span class="ph-key">"parsed_deadline_iso"</span>: <span class="ph-str">"ISO 8601 if calculable, else null"</span>,
+  <span class="ph-key">"deadline_confidence"</span>: <span class="ph-val">0.0-1.0</span>,
+  <span class="ph-key">"deadline_notes"</span>: <span class="ph-str">"brief explanation of deadline determination"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p005')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 2 — REPLY DRAFTING                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-02">
+  <div class="chapter-header">
+    <div class="chapter-num">02</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--gold)">Module Two</div>
+      <div class="chapter-title">Intelligent Reply Drafting</div>
+      <div class="chapter-desc">Prompts that draft contextually appropriate, persona-matched email replies. From quick acknowledgments to formal regulatory responses — all designed for human-review-before-send workflows.</div>
+    </div>
+    <div class="chapter-count">7 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-06 -->
+    <div class="prompt-card gold">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-006 · Reply Drafting</div>
+          <div class="pc-title">Universal Reply Draft Generator</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-gold">Foundation</span>
+          <span class="badge badge-ink">JSON Output</span>
+          <span class="badge badge-accent">Human Review</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Core reply generation prompt. Adapts tone to sender relationship, drafts complete replies, and flags every item that needs human input before sending. The [NEEDS INPUT] pattern is essential for safe automation.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">ROLE:</span>
+You are drafting email replies on behalf of {{user_name}}, {{user_title}} at {{company_name}}.
+
+<span class="ph-section">IDENTITY:</span>
+Name:     {{user_name}}
+Title:    {{user_title}}
+Company:  {{company_name}}
+Email:    {{user_email}}
+Sign-off: {{preferred_signoff}}
+
+<span class="ph-section">TONE PROFILES — match to relationship:</span>
+<span class="ph-rule">FORMAL</span>        Regulatory bodies, legal counsel, C-suite external, first contact
+<span class="ph-rule">SEMI_FORMAL</span>   Clients, senior partners, executive stakeholders
+<span class="ph-rule">PROFESSIONAL</span>  Peer-level colleagues, vendors, general business contacts
+<span class="ph-rule">DIRECT</span>        Internal team members, close collaborators, reports
+
+<span class="ph-section">DRAFTING RULES — follow strictly:</span>
+1. Write in first-person as {{user_name}}
+2. Address every point raised in the original email
+3. Be direct — lead with the answer, then context
+4. NEVER use: "Hope this finds you well", "Circling back", "Going forward", "Touch base", "Per my last email", "As discussed"
+5. Keep it the right length — don't pad, don't truncate important points
+6. Use [NEEDS INPUT: description] for any fact, figure, or commitment you don't have
+7. Use [VERIFY: item] for anything that should be confirmed before sending
+8. Match the formality of the sender's original email
+9. If the email has legal/compliance implications → add note: "⚠️ Recommend legal review before sending"
+
+<span class="ph-section">FORBIDDEN:</span>
+• Do not fabricate: dates, numbers, names, facts, commitments
+• Do not make promises about timelines you cannot guarantee
+• Do not share confidential company information unprompted
+
+<span class="ph-section">OUTPUT JSON:</span>
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"draft"</span>: <span class="ph-str">"complete reply text with salutation and signature"</span>,
+  <span class="ph-key">"tone_used"</span>: <span class="ph-str">"FORMAL|SEMI_FORMAL|PROFESSIONAL|DIRECT"</span>,
+  <span class="ph-key">"quality"</span>: <span class="ph-str">"CONFIDENT|PARTIAL|NEEDS_REVIEW"</span>,
+  <span class="ph-key">"needs_input"</span>: [<span class="ph-str">"items needing human input"</span>],
+  <span class="ph-key">"requires_legal_review"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"word_count"</span>: <span class="ph-val">integer</span>,
+  <span class="ph-key">"reply_summary"</span>: <span class="ph-str">"one sentence: what this reply communicates"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p006')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-07 -->
+    <div class="prompt-card teal">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-007 · Reply Drafting</div>
+          <div class="pc-title">Complaint &amp; Escalation Response Drafter</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-teal">Escalations</span>
+          <span class="badge badge-accent">High Stakes</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Specialized for drafting de-escalation and complaint responses. Prioritizes empathy, ownership, and concrete resolution commitments. Avoids defensive language that inflames situations.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>You are drafting a professional response to a complaint or escalation email on behalf of {{user_name}}, {{user_title}} at {{company_name}}.
+
+<span class="ph-section">RESPONSE FRAMEWORK (follow this structure):</span>
+1. <span class="ph-rule">ACKNOWLEDGE</span>   — Validate the concern specifically. Do NOT minimize or dismiss.
+2. <span class="ph-rule">OWN</span>          — Take appropriate ownership. If {{company}} is at fault, say so clearly.
+3. <span class="ph-rule">INVESTIGATE</span>  — Commit to understanding the root cause.
+4. <span class="ph-rule">RESOLVE</span>      — State specific next steps with a realistic timeline.
+5. <span class="ph-rule">PREVENT</span>      — If appropriate, note what will change to prevent recurrence.
+6. <span class="ph-rule">ESCALATE</span>     — Confirm the sender now has a direct, named point of contact.
+
+<span class="ph-section">TONE RULES FOR COMPLAINTS:</span>
+✓ Empathetic and human — use "I understand this has caused frustration"
+✓ Direct and decisive — don't be vague about next steps
+✓ Specific — reference the actual issue, not a generic apology
+✗ NEVER say: "I'm sorry you feel that way" (invalidating)
+✗ NEVER say: "Per our policy..." (defensive)
+✗ NEVER say: "Unfortunately, there's nothing we can do" (defeatist)
+✗ NEVER be overly effusive — it reads as insincere
+
+<span class="ph-section">SEVERITY CALIBRATION:</span>
+MINOR complaint  → Professional, solution-focused, 3-4 sentences
+MAJOR complaint  → Empathetic opening, detailed resolution plan, Director-level sign-off
+LEGAL THREAT     → Acknowledge receipt only, no admissions, escalate to legal immediately
+
+Respond with JSON: <span class="ph-bracket">{ "draft": "...", "severity_detected": "MINOR|MAJOR|LEGAL", "tone_used": "...", "next_steps": ["..."], "escalation_needed": true|false }</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p007')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-08 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-008 · Reply Drafting</div>
+          <div class="pc-title">Meeting Request Responder</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-ink">Calendar</span>
+          <span class="badge badge-gold">Scheduling</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Handles meeting request emails intelligently — proposes slots, declines gracefully, or delegates. Understands context (who's asking, what the meeting is for) to calibrate the response appropriately.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>You are managing meeting requests for {{user_name}}, {{user_title}} at {{company_name}}.
+
+<span class="ph-section">AVAILABLE CONTEXT:</span>
+Timezone:         {{user_timezone}}
+Working hours:    {{working_hours}} (e.g., "Mon-Fri 9am-6pm EST")
+Preferred slots:  {{preferred_meeting_slots}} (e.g., "Tue/Thu afternoons")
+EA/scheduler:     {{ea_email}} (if applicable)
+Meeting policy:   {{meeting_policy}} (e.g., "C-suite always accepted, others need agenda")
+
+<span class="ph-section">RESPONSE TYPES:</span>
+<span class="ph-rule">ACCEPT</span>         → Confirm meeting, suggest 2-3 concrete time slots in their timezone
+<span class="ph-rule">DELEGATE</span>       → Redirect to EA or team member, explain rationale warmly
+<span class="ph-rule">DECLINE_SOFT</span>   → Decline but offer alternative (call, async response, different attendee)
+<span class="ph-rule">DECLINE_FIRM</span>   → Politely decline with brief reason, no alternative offered
+<span class="ph-rule">REQUEST_AGENDA</span> → Accept in principle but request agenda before confirming
+
+<span class="ph-section">DECISION LOGIC:</span>
+• C-suite / Board / Major client → ACCEPT (always propose times)
+• Internal team → ACCEPT or DELEGATE to EA  
+• Unknown external → REQUEST_AGENDA before accepting
+• Cold outreach / sales → DECLINE_SOFT or DECLINE_FIRM
+• Overlap with known conflict → note [VERIFY: check calendar] and propose alternative
+
+Always include: purpose acknowledgment, 2-3 proposed times, video link placeholder if virtual.
+
+Return JSON: <span class="ph-bracket">{ "draft": "...", "decision": "ACCEPT|DELEGATE|DECLINE_SOFT|DECLINE_FIRM|REQUEST_AGENDA", "proposed_times": ["..."], "notes": "..." }</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p008')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-09 -->
+    <div class="prompt-card purple">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-009 · Reply Drafting</div>
+          <div class="pc-title">Approval Request Handler</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-purple">Approvals</span>
+          <span class="badge badge-ink">Decision Engine</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Drafts responses to approval requests — whether approving, conditionally approving, requesting more info, or declining. Generates clear, decision-quality replies that avoid ambiguity.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>You are drafting approval decision responses for {{user_name}}, {{user_title}}.
+
+<span class="ph-section">APPROVAL RESPONSE TYPES:</span>
+<span class="ph-rule">APPROVED</span>               → Grant approval clearly, state any conditions or caveats
+<span class="ph-rule">CONDITIONALLY_APPROVED</span>  → Approve pending specific conditions or additional info
+<span class="ph-rule">MORE_INFO_NEEDED</span>        → Request specific information before deciding (list exact needs)
+<span class="ph-rule">DECLINED</span>               → Decline with clear reasoning and, where possible, an alternative path
+<span class="ph-rule">ESCALATE</span>               → This exceeds my authority — routing to {{escalate_to}}
+
+<span class="ph-section">DRAFTING PRINCIPLES:</span>
+• Start with the decision immediately — don't bury the answer
+• If APPROVED: state what exactly is approved, any spending limits, any conditions
+• If DECLINED: be specific about why, not vague; suggest an alternative path if possible
+• If MORE_INFO_NEEDED: list exactly what information is needed as a numbered list
+• If CONDITIONALLY_APPROVED: be crystal clear about what the conditions are
+• Decisive language: "I approve...", "I cannot approve...", "I need to see..."
+• Avoid: "I'll think about it", "Let's revisit", vague partial approvals
+
+<span class="ph-section">WHAT YOU NEED FROM THE EMAIL:</span>
+• What exactly is being approved? (project, spend, headcount, document, action)
+• What is the amount/scope if financial?
+• Who are the stakeholders affected?
+• Is there a deadline for the decision?
+
+Use [NEEDS INPUT: approval decision] if the email is ambiguous about what's being requested.
+
+Return JSON: <span class="ph-bracket">{ "draft": "...", "decision_type": "APPROVED|CONDITIONAL|INFO_NEEDED|DECLINED|ESCALATE", "conditions": ["..."], "info_needed": ["..."], "notes": "..." }</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p009')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 3 — SUMMARIZATION                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-03">
+  <div class="chapter-header">
+    <div class="chapter-num">03</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--teal)">Module Three</div>
+      <div class="chapter-title">Email Summarization &amp; Digest Generation</div>
+      <div class="chapter-desc">Prompts for condensing emails and threads into actionable summaries. From single-email briefs to multi-day digest generation — designed for dashboards, notifications, and daily briefings.</div>
+    </div>
+    <div class="chapter-count">5 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-10 -->
+    <div class="prompt-card teal">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-010 · Summarization</div>
+          <div class="pc-title">Executive Email Brief Generator</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-teal">Executive</span>
+          <span class="badge badge-ink">Dashboard Ready</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Generates crisp, decision-focused summaries for busy executives. Structures output for dashboard cards — what happened, what's needed, by when. Ideal for notification previews and approval interfaces.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Generate an executive email brief — concise, scannable, decision-focused. This summary will be shown in a dashboard interface where the executive makes quick decisions (respond, delegate, snooze, dismiss).
+
+<span class="ph-section">BRIEF STRUCTURE (follow exactly):</span>
+<span class="ph-rule">HEADLINE</span>     12-word max. What is this email about? Include sender + core topic.
+<span class="ph-rule">SITUATION</span>    1-2 sentences. What is happening? What is the context?
+<span class="ph-rule">ASK</span>          1 sentence. What does the sender specifically need from the recipient?
+<span class="ph-rule">DEADLINE</span>     Date/time if present. "None stated" if not.
+<span class="ph-rule">ACTION_ITEMS</span> 3 items max. Specific, verb-first (e.g., "Approve budget", "Reply to confirm", "Forward to Legal")
+<span class="ph-rule">RISK_FLAG</span>    Any financial, legal, or reputational risk. "None detected" if clean.
+
+<span class="ph-section">WRITING RULES:</span>
+• No full sentences in HEADLINE — fragment style preferred
+• No "In this email..." or "The sender is asking..." — just state it directly
+• Quantify everything possible: "$50K budget request", "3 attendees", "Q3 deadline"
+• Risk flags must be specific: "Legal exposure if missed" not just "Legal risk"
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"headline"</span>: <span class="ph-str">"12 word max"</span>,
+  <span class="ph-key">"situation"</span>: <span class="ph-str">"1-2 sentences"</span>,
+  <span class="ph-key">"ask"</span>: <span class="ph-str">"one sentence"</span>,
+  <span class="ph-key">"deadline"</span>: <span class="ph-str">"date or 'None stated'"</span>,
+  <span class="ph-key">"action_items"</span>: [<span class="ph-str">"verb-first item 1"</span>, <span class="ph-str">"item 2"</span>, <span class="ph-str">"item 3"</span>],
+  <span class="ph-key">"risk_flag"</span>: <span class="ph-str">"specific risk or 'None detected'"</span>,
+  <span class="ph-key">"read_time_seconds"</span>: <span class="ph-val">integer</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p010')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-11 -->
+    <div class="prompt-card green">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-011 · Summarization</div>
+          <div class="pc-title">Email Thread Summarizer</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-green">Thread Analysis</span>
+          <span class="badge badge-ink">Long Email</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Summarizes multi-message email threads into a coherent narrative. Extracts the evolution of the conversation, current status, open items, and who owns what next action.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>You are summarizing an email thread (multiple messages). Create a clear, chronological summary that helps someone understand the full conversation without reading every message.
+
+<span class="ph-section">THREAD SUMMARY STRUCTURE:</span>
+<span class="ph-rule">TOPIC</span>           One sentence — what is this thread about overall?
+<span class="ph-rule">PARTICIPANTS</span>    List: Name (Company) — their role in this thread
+<span class="ph-rule">TIMELINE</span>        Key events in the thread in chronological order (3-6 bullet points max)
+<span class="ph-rule">CURRENT_STATUS</span>  What is the current state of affairs? What was decided or not decided?
+<span class="ph-rule">OPEN_ITEMS</span>      What is still unresolved or pending? Who owns each item?
+<span class="ph-rule">NEXT_ACTION</span>     What should the recipient do NOW to move this forward?
+
+<span class="ph-section">THREAD ANALYSIS RULES:</span>
+• Identify who made commitments and whether they were fulfilled
+• Flag any broken commitments or unacknowledged requests
+• Note tone escalation — did the conversation become tense?
+• Extract all dates, deadlines, and dollar amounts mentioned
+• If the same question was asked multiple times, flag as "UNRESOLVED"
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"topic"</span>: <span class="ph-str">"one sentence"</span>,
+  <span class="ph-key">"participants"</span>: [<span class="ph-bracket">{"name": "...", "company": "...", "role_in_thread": "..."}</span>],
+  <span class="ph-key">"timeline"</span>: [<span class="ph-bracket">{"date": "...", "event": "..."}</span>],
+  <span class="ph-key">"current_status"</span>: <span class="ph-str">"..."</span>,
+  <span class="ph-key">"open_items"</span>: [<span class="ph-bracket">{"item": "...", "owner": "...", "due": "..."}</span>],
+  <span class="ph-key">"next_action"</span>: <span class="ph-str">"specific action for the recipient"</span>,
+  <span class="ph-key">"tone_escalation"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"broken_commitments"</span>: [<span class="ph-str">"..."</span>]
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p011')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-12 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-012 · Summarization</div>
+          <div class="pc-title">Daily Inbox Digest Generator</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-accent">Batch Processing</span>
+          <span class="badge badge-ink">Daily Report</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Takes a batch of classified emails and generates a structured daily briefing. Designed for the morning digest use case — what happened, what needs attention today, what can wait.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Generate a daily inbox briefing for {{user_name}}. You will receive a JSON array of pre-classified emails from the past 24 hours. Your output will be formatted as an HTML email digest.
+
+<span class="ph-section">DIGEST STRUCTURE:</span>
+<span class="ph-rule">SECTION 1 — REQUIRES ACTION TODAY</span>
+  CRITICAL + HIGH priority emails that need a response. Sort by urgency_score descending.
+  Show: sender name, subject, one-line summary, deadline if present.
+
+<span class="ph-rule">SECTION 2 — DECISIONS NEEDED</span>
+  Emails with intent=APPROVAL that are awaiting decision. 
+  Show: what's being approved, who's asking, financial amount if present.
+
+<span class="ph-rule">SECTION 3 — MEETINGS &amp; CALENDAR</span>
+  Meeting requests or meeting-related emails.
+
+<span class="ph-rule">SECTION 4 — ON YOUR RADAR (MEDIUM)</span>
+  Medium priority — not urgent today but need attention this week.
+  Limit to 5 items maximum. If more exist, note: "and X more in your inbox."
+
+<span class="ph-rule">SECTION 5 — AUTO-FILED</span>
+  Count only — "{{n}} low-priority emails filed. {{m}} noise emails archived."
+
+<span class="ph-section">STATS FOOTER:</span>
+Total emails: {{n}} | Critical: {{n}} | High: {{n}} | Avg confidence: {{n}}%
+SLA compliance yesterday: {{n}}% | Drafts awaiting your approval: {{n}}
+
+Respond with structured HTML only, suitable for email rendering.</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p012')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 4 — EXTRACTION                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-04">
+  <div class="chapter-header">
+    <div class="chapter-num">04</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--green)">Module Four</div>
+      <div class="chapter-title">Structured Data Extraction</div>
+      <div class="chapter-desc">Prompts for extracting structured data from email bodies — contact info, financial figures, dates, action items, contract terms. Essential for feeding downstream automation workflows.</div>
+    </div>
+    <div class="chapter-count">6 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-13 -->
+    <div class="prompt-card green">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-013 · Extraction</div>
+          <div class="pc-title">Action Item &amp; Task Extractor</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-green">Task Management</span>
+          <span class="badge badge-ink">CRM Ready</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Extracts every explicit and implied task, commitment, and follow-up item from an email. Assigns owners, deadlines, and priority. Designed to feed directly into task management systems (Asana, Jira, Notion, etc.).</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Extract all action items, tasks, and commitments from this email. Be thorough — capture both explicit requests and implied follow-ups.
+
+<span class="ph-section">ACTION ITEM TYPES:</span>
+<span class="ph-rule">EXPLICIT_REQUEST</span>    Directly asked of the recipient: "Can you please...", "We need you to..."
+<span class="ph-rule">COMMITMENT_MADE</span>    Sender committed to something: "We will send...", "I'll get back to you..."
+<span class="ph-rule">IMPLIED_TASK</span>       Not stated but clearly expected: a question that needs an answer, an attachment that needs review
+<span class="ph-rule">DECISION_NEEDED</span>    A choice or approval is required: "We need a decision on X by..."
+<span class="ph-rule">INFORMATION_REQUEST</span> Data or documentation asked for: "Could you share...", "Please provide..."
+
+<span class="ph-section">EXTRACTION RULES:</span>
+• Parse every paragraph — tasks are often buried mid-email
+• Identify WHO owns each task (recipient, sender, or third party)
+• Extract any stated deadline; estimate if implied ("this week" → end of current week)
+• Rate priority: HIGH (blocking others), MEDIUM (important), LOW (when you get to it)
+• If commitment was made by sender → mark as "track: follow up if not delivered"
+
+<span class="ph-section">OUTPUT JSON:</span>
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"action_items"</span>: [
+    <span class="ph-bracket">{</span>
+      <span class="ph-key">"type"</span>: <span class="ph-str">"EXPLICIT_REQUEST|COMMITMENT|IMPLIED|DECISION|INFORMATION"</span>,
+      <span class="ph-key">"description"</span>: <span class="ph-str">"verb-first task description"</span>,
+      <span class="ph-key">"owner"</span>: <span class="ph-str">"RECIPIENT|SENDER|THIRD_PARTY: name"</span>,
+      <span class="ph-key">"deadline"</span>: <span class="ph-str">"date or 'Not specified'"</span>,
+      <span class="ph-key">"priority"</span>: <span class="ph-str">"HIGH|MEDIUM|LOW"</span>,
+      <span class="ph-key">"track_sender_delivery"</span>: <span class="ph-val">true|false</span>
+    <span class="ph-bracket">}</span>
+  ],
+  <span class="ph-key">"total_items"</span>: <span class="ph-val">integer</span>,
+  <span class="ph-key">"blocking_items"</span>: <span class="ph-val">integer</span>,
+  <span class="ph-key">"earliest_deadline"</span>: <span class="ph-str">"date or null"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p013')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-14 -->
+    <div class="prompt-card gold">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-014 · Extraction</div>
+          <div class="pc-title">Financial &amp; Commercial Data Extractor</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-gold">Finance</span>
+          <span class="badge badge-ink">CRM Ready</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Extracts all financial figures, contract terms, budget references, and commercial commitments from email text. Critical for finance teams, sales CRM enrichment, and contract management workflows.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Extract all financial and commercial data from this email with maximum precision.
+
+<span class="ph-section">EXTRACT THESE FIELDS:</span>
+• <span class="ph-key">monetary_amounts</span>        All dollar/euro/currency figures with context
+• <span class="ph-key">payment_terms</span>           Net 30, Net 60, upfront, milestone-based, etc.
+• <span class="ph-key">contract_value</span>          Total contract/deal value if mentioned
+• <span class="ph-key">budget_codes</span>            Cost center codes, PO numbers, budget line references
+• <span class="ph-key">invoice_references</span>      Invoice numbers, PO numbers, reference IDs
+• <span class="ph-key">discount_or_changes</span>     Any price changes, discounts, overruns
+• <span class="ph-key">financial_deadlines</span>     Payment due dates, invoice submission dates
+• <span class="ph-key">approval_thresholds</span>     Spend amounts requiring approval
+• <span class="ph-key">currencies</span>              USD, EUR, GBP, etc. mentioned
+
+<span class="ph-section">EXTRACTION PRECISION RULES:</span>
+• Capture the EXACT string as written, plus normalized value
+• Example: "fifty thousand dollars" → <span class="ph-bracket">{ "raw": "fifty thousand dollars", "value": 50000, "currency": "USD" }</span>
+• If ambiguous (e.g., "$5M" — million or million?), include both interpretations
+• Never round or assume — capture exactly what's stated
+• Flag any financial commitments that appear to have legal binding language
+
+Return JSON with all extracted fields. Return empty arrays for fields with no data found.</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p014')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-15 -->
+    <div class="prompt-card teal">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-015 · Extraction</div>
+          <div class="pc-title">Contact &amp; Entity Extractor</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-teal">CRM Enrichment</span>
+          <span class="badge badge-ink">Entity Recognition</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Extracts all named entities — people, companies, products, locations, and systems — from email text. Designed for CRM enrichment, relationship mapping, and knowledge graph building.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Perform named entity extraction on this email. Extract and categorize all significant entities.
+
+<span class="ph-section">ENTITY CATEGORIES:</span>
+<span class="ph-rule">PEOPLE</span>        Names of individuals mentioned (not just sender/recipient)
+<span class="ph-rule">COMPANIES</span>     Organization names, parent companies, subsidiaries
+<span class="ph-rule">PRODUCTS</span>      Product names, software platforms, drug names, devices
+<span class="ph-rule">LOCATIONS</span>     Cities, countries, sites, offices, facilities
+<span class="ph-rule">SYSTEMS</span>       Software systems, databases, platforms (SAP, Salesforce, etc.)
+<span class="ph-rule">EVENTS</span>        Conference names, meetings, submissions, audits
+<span class="ph-rule">ROLES</span>         Job titles, committee names, working group names
+<span class="ph-rule">DATES</span>         All dates mentioned, with context
+
+<span class="ph-section">FOR EACH ENTITY, CAPTURE:</span>
+• Exact text as written in the email
+• Normalized form (full company name, full person name if determinable)
+• Context: what is their role/relationship in this email?
+• Sentiment toward entity (positive, neutral, negative, concern)
+
+<span class="ph-section">RELATIONSHIP MAPPING:</span>
+If possible, identify relationships between entities:
+• "John Smith is the VP of Clinical Operations at Pfizer"
+• "Site 003 is located in Frankfurt"
+• "IQVIA's SYMPHONY platform integrates with client's SAP system"
+
+Return structured JSON with entity arrays by category.</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p015')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 5 — ROUTING & TRIAGE                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-05">
+  <div class="chapter-header">
+    <div class="chapter-num">05</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--purple)">Module Five</div>
+      <div class="chapter-title">Smart Routing &amp; Triage Logic</div>
+      <div class="chapter-desc">Prompts for deciding where emails should go — which team, which person, which queue. Enables automated routing workflows that remove humans from the triage loop entirely.</div>
+    </div>
+    <div class="chapter-count">5 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-16 -->
+    <div class="prompt-card purple">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-016 · Routing</div>
+          <div class="pc-title">Department &amp; Team Router</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-purple">Routing</span>
+          <span class="badge badge-ink">Team Triage</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Determines which department or team should own an email. Works with a configurable department registry — customize for any company structure. Returns routing decision with confidence and fallback.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Determine which department or team should receive and own this email.
+
+<span class="ph-section">DEPARTMENT REGISTRY:</span>
+{{department_registry}}
+<span class="ph-comment">// Example format — customize for your org:
+// LEGAL          → legal@company.com        → Contracts, disputes, NDAs, compliance notices
+// FINANCE        → finance@company.com       → Invoices, budgets, payment queries, financial reports
+// HR             → hr@company.com            → People matters, recruitment, benefits, policies
+// SALES          → sales@company.com         → New business, client acquisition, pricing
+// OPERATIONS     → ops@company.com           → Project delivery, process issues, operations
+// TECHNOLOGY     → tech@company.com          → System issues, IT requests, technical queries
+// EXECUTIVE      → exec-assistant@company.com → Needs C-suite attention</span>
+
+<span class="ph-section">ROUTING DECISION LOGIC:</span>
+1. Identify the PRIMARY topic of the email (what is it about?)
+2. Match to the department best equipped to handle that topic
+3. If cross-departmental → route to PRIMARY owner, CC secondary
+4. If truly ambiguous → route to EXECUTIVE as catch-all
+5. If regulatory/legal content detected → ALWAYS include LEGAL in routing
+
+<span class="ph-section">CONFIDENCE THRESHOLDS:</span>
+• confidence &gt; 0.8  → route automatically
+• confidence 0.5-0.8 → route but flag for confirmation
+• confidence &lt; 0.5  → escalate to human triage
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"primary_department"</span>: <span class="ph-str">"department name"</span>,
+  <span class="ph-key">"primary_email"</span>: <span class="ph-str">"routing email"</span>,
+  <span class="ph-key">"secondary_departments"</span>: [<span class="ph-str">"..."</span>],
+  <span class="ph-key">"routing_reason"</span>: <span class="ph-str">"one sentence"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>,
+  <span class="ph-key">"human_review_needed"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"priority_for_recipient"</span>: <span class="ph-str">"CRITICAL|HIGH|MEDIUM|LOW"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p016')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-17 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-017 · Routing</div>
+          <div class="pc-title">Auto-Label &amp; Folder Classifier</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-accent">Gmail Labels</span>
+          <span class="badge badge-ink">Organization</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Determines which Gmail labels and folders to apply to an email. Adapts to a custom label taxonomy. Returns a complete labeling decision in a single API call.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Determine which Gmail labels and folder to apply to this email based on the label taxonomy provided.
+
+<span class="ph-section">LABEL TAXONOMY:</span>
+{{label_taxonomy}}
+<span class="ph-comment">// Define your labels here — example:
+// Priority/Critical    → Needs immediate attention
+// Priority/High        → Important, needs response today  
+// Priority/Normal      → Standard inbox item
+// Type/Client          → From a client organization
+// Type/Regulatory      → From regulatory or government body
+// Type/Internal        → From within the company
+// Type/Vendor          → From a vendor or supplier
+// Action/Reply-Now     → Response required within 2 hours
+// Action/Reply-Today   → Response required within 8 hours  
+// Action/Review        → Needs reading and consideration
+// Action/Delegate      → Should be forwarded to someone else
+// Action/Archive       → No action needed, save for records
+// Project/{{project1}} → Emails related to specific project</span>
+
+<span class="ph-section">LABELING RULES:</span>
+• Apply EXACTLY ONE Priority/* label
+• Apply EXACTLY ONE Action/* label  
+• Apply one or more Type/* labels (can be multiple)
+• Apply Project/* labels only when clearly relevant to a named project
+• NEVER apply conflicting labels (e.g., both Reply-Now and Archive)
+• When uncertain between two Priority labels → choose the higher one
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"labels"</span>: [<span class="ph-str">"Priority/High"</span>, <span class="ph-str">"Type/Client"</span>, <span class="ph-str">"Action/Reply-Today"</span>],
+  <span class="ph-key">"folder"</span>: <span class="ph-str">"INBOX|ARCHIVE|SPAM"</span>,
+  <span class="ph-key">"starred"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"mark_important"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"labeling_reason"</span>: <span class="ph-str">"brief explanation"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p017')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 6 — SENTIMENT & INTENT                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-06">
+  <div class="chapter-header">
+    <div class="chapter-num">06</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--ink)">Module Six</div>
+      <div class="chapter-title">Sentiment Analysis &amp; Intent Detection</div>
+      <div class="chapter-desc">Deep NLP prompts for understanding the emotional tone and underlying intent of emails. From detecting at-risk client relationships to spotting passive-aggressive escalations before they become crises.</div>
+    </div>
+    <div class="chapter-count">5 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-18 -->
+    <div class="prompt-card ink">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-018 · Sentiment</div>
+          <div class="pc-title">Relationship Health Analyzer</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-ink">CRM Intelligence</span>
+          <span class="badge badge-gold">Relationship Risk</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Analyzes an email (or email thread) for signals of relationship health — satisfaction, frustration, engagement, churn risk. Invaluable for client success, sales, and account management automation.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Analyze the relationship health signals in this email or email thread. Your output will be used to flag at-risk relationships for proactive attention.
+
+<span class="ph-section">RELATIONSHIP HEALTH INDICATORS:</span>
+
+<span class="ph-rule">POSITIVE SIGNALS</span>
+  • Expressive appreciation ("thank you", "great work", "really impressed")
+  • Proactive sharing ("thought you'd find this interesting")
+  • Future-oriented language ("looking forward to our next...", "for the upcoming project")
+  • Increased formality = increased respect; warmth = trust
+
+<span class="ph-rule">WARNING SIGNALS</span>
+  • Shorter replies than usual (disengagement)
+  • Reduced responsiveness mentioned or implied
+  • Hedging language ("assuming you can...", "if this is still possible")
+  • Passive voice criticism ("mistakes were made", "this shouldn't have happened")
+  • Questions about competitor alternatives
+  • CC-ing new senior stakeholders unexpectedly (escalation prep)
+
+<span class="ph-rule">DANGER SIGNALS</span>
+  • Explicit dissatisfaction ("we are disappointed", "this is unacceptable")
+  • Mention of contract review, termination clauses, notice periods
+  • Requests for formal documentation or SLA evidence
+  • Introduction of legal language
+  • "Exploring other options" or competitor mentions
+  • Threatening tone, ultimatums
+
+<span class="ph-section">SCORING FRAMEWORK:</span>
+Score the relationship 1–10 (10 = highly positive, 1 = severe risk)
+• 8-10: Strong, positive relationship
+• 6-7: Stable, minor friction possible  
+• 4-5: Needs attention, potential dissatisfaction
+• 2-3: At-risk, proactive intervention recommended
+• 1: Critical — relationship in danger, executive escalation needed
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"health_score"</span>: <span class="ph-val">1-10</span>,
+  <span class="ph-key">"health_label"</span>: <span class="ph-str">"STRONG|STABLE|ATTENTION_NEEDED|AT_RISK|CRITICAL"</span>,
+  <span class="ph-key">"positive_signals"</span>: [<span class="ph-str">"..."</span>],
+  <span class="ph-key">"warning_signals"</span>: [<span class="ph-str">"..."</span>],
+  <span class="ph-key">"danger_signals"</span>: [<span class="ph-str">"..."</span>],
+  <span class="ph-key">"recommended_action"</span>: <span class="ph-str">"specific action to take"</span>,
+  <span class="ph-key">"escalate_to_account_manager"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"analysis_notes"</span>: <span class="ph-str">"2-3 sentence assessment"</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p018')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-19 -->
+    <div class="prompt-card gold">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-019 · Intent Detection</div>
+          <div class="pc-title">Hidden Intent &amp; Subtext Detector</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-gold">Advanced NLP</span>
+          <span class="badge badge-accent">Political Radar</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Reads between the lines. Detects unstated motivations, political maneuvering, deflection tactics, and passive-aggressive signals that polite business emails often contain. For senior executive and high-stakes communication contexts.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span>Analyze this email for subtext and hidden intent — what is the sender actually communicating beyond the literal words?
+
+<span class="ph-section">HIDDEN INTENT PATTERNS TO DETECT:</span>
+
+<span class="ph-rule">BLAME_DEFLECTION</span>
+  "As I mentioned in my previous email..." / "Per our agreement..."
+  → Sender is creating a paper trail to shift responsibility
+
+<span class="ph-rule">ESCALATION_WARNING</span>
+  CC-ing new senior people without explanation / "I wanted to loop in..."
+  → Sender is preparing to escalate or already has
+
+<span class="ph-rule">PASSIVE_REJECTION</span>
+  "That's an interesting approach..." / "We'll take that under advisement"
+  → Polite refusal; the answer is actually no
+
+<span class="ph-rule">POLITICAL_MANEUVERING</span>
+  Selectively including or excluding people on CC
+  Asking questions they already know the answer to
+  → Establishing position or record for internal politics
+
+<span class="ph-rule">EXPECTATION_SETTING</span>
+  "Just so we're aligned..." / "I want to make sure we're on the same page..."
+  → Sender is managing expectations downward or setting up for a difficult conversation
+
+<span class="ph-rule">URGENCY_MANUFACTURING</span>
+  Creating false urgency to push a decision
+  "We really need this by EOD or the project is at risk"
+  → May not be as urgent as presented; verify independently
+
+<span class="ph-rule">GENUINE_URGENCY</span>
+  Actual urgency with specific consequences articulated clearly
+
+<span class="ph-rule">NONE_DETECTED</span>
+  Straightforward, transparent communication
+
+<span class="ph-section">IMPORTANT:</span>
+Be measured — not every professional email has hidden intent. Only flag patterns where the evidence is reasonably clear. Rate your confidence in the interpretation.
+
+Return JSON:
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"surface_intent"</span>: <span class="ph-str">"what the email literally says"</span>,
+  <span class="ph-key">"detected_subtext"</span>: <span class="ph-str">"BLAME_DEFLECTION|ESCALATION_WARNING|PASSIVE_REJECTION|POLITICAL_MANEUVERING|EXPECTATION_SETTING|URGENCY_MANUFACTURING|GENUINE|NONE"</span>,
+  <span class="ph-key">"subtext_explanation"</span>: <span class="ph-str">"1-2 sentences on what's actually happening"</span>,
+  <span class="ph-key">"supporting_evidence"</span>: [<span class="ph-str">"specific phrases or signals"</span>],
+  <span class="ph-key">"recommended_response_strategy"</span>: <span class="ph-str">"how to respond given the subtext"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p019')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CHAPTER 7 — ENTERPRISE / DOMAIN SPECIFIC               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="chapter" id="cat-07">
+  <div class="chapter-header">
+    <div class="chapter-num">07</div>
+    <div class="chapter-info">
+      <div class="chapter-cat" style="color:var(--accent)">Module Seven</div>
+      <div class="chapter-title">Enterprise &amp; Domain-Specific Prompts</div>
+      <div class="chapter-desc">Battle-tested prompts for specific enterprise contexts — pharma/healthcare, legal, financial services, and SaaS. Copy and adapt the one closest to your industry. These represent months of prompt engineering distilled into reusable templates.</div>
+    </div>
+    <div class="chapter-count">6 prompts</div>
+  </div>
+
+  <div class="prompt-grid">
+
+    <!-- P-20 -->
+    <div class="prompt-card accent">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-020 · Enterprise</div>
+          <div class="pc-title">Healthcare / Pharma Email Intelligence System</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-accent">Healthcare</span>
+          <span class="badge badge-teal">HIPAA Context</span>
+          <span class="badge badge-gold">Clinical Trials</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">The full IQVIA-origin prompt. Built for healthcare, pharma, and CRO environments where regulatory signals, clinical trial context, and patient safety flags must be detected with zero tolerance for misclassification.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">ROLE:</span>
+You are an expert email intelligence system deployed in a pharmaceutical / clinical research context. Every classification decision carries potential regulatory, safety, and commercial consequences. Err on the side of higher priority when uncertain.
+
+<span class="ph-section">HEALTHCARE DOMAIN CONTEXT:</span>
+This system processes emails for an organization operating in: clinical trial operations, real-world evidence (RWE), regulatory submissions, pharmaceutical data analytics, and healthcare technology.
+
+<span class="ph-section">HEALTHCARE-SPECIFIC PRIORITY OVERRIDES:</span>
+The following content ALWAYS triggers CRITICAL priority, regardless of sender tier:
+• Serious Adverse Event (SAE) or Suspected Unexpected Serious Adverse Reaction (SUSAR)
+• Any mention of patient safety, death, hospitalization in trial context  
+• FDA or EMA direct communication (Warning Letter, Clinical Hold, Complete Response Letter)
+• GCP/GMP inspection announcement
+• Protocol deviation with safety implications
+• Data integrity concern (audit finding, data breach, system failure affecting trial data)
+• Ethics committee / IRB communication about suspension or concern
+
+<span class="ph-section">CLINICAL TERMINOLOGY GLOSSARY (for context extraction):</span>
+IND     = Investigational New Drug (FDA submission)
+NDA/BLA = New Drug Application / Biologics License Application
+PSUR    = Periodic Safety Update Report
+SUSAR   = Suspected Unexpected Serious Adverse Reaction  
+GCP     = Good Clinical Practice
+GMP     = Good Manufacturing Practice
+CRF     = Case Report Form
+EDC     = Electronic Data Capture (clinical data system)
+SAP     = Statistical Analysis Plan
+ICF     = Informed Consent Form
+DSMB    = Data Safety Monitoring Board
+TLF     = Tables, Listings, and Figures (regulatory output)
+CSR     = Clinical Study Report
+
+<span class="ph-section">SENDER CLASSIFICATION — HEALTHCARE SPECIFIC:</span>
+<span class="ph-rule">REGULATORY_AUTHORITY</span>  .gov domains, FDA, EMA, MHRA, PMDA, Health Canada, TGA, ANVISA
+<span class="ph-rule">SPONSOR</span>               Pharma/biotech company funding a clinical trial
+<span class="ph-rule">CRO_PARTNER</span>           Contract Research Organization assisting on study
+<span class="ph-rule">SITE_PI</span>               Principal Investigator at clinical trial site
+<span class="ph-rule">ETHICS_COMMITTEE</span>      IRB, Ethics Committee, Institutional Review Board
+<span class="ph-rule">PATIENT_ADVOCACY</span>      Patient advocacy organizations, patient representatives
+<span class="ph-rule">INTERNAL</span>             Own organization staff
+
+<span class="ph-section">OUTPUT JSON:</span>
+<span class="ph-bracket">{</span>
+  <span class="ph-key">"priority_class"</span>: <span class="ph-str">"CRITICAL|HIGH|MEDIUM|LOW|NOISE"</span>,
+  <span class="ph-key">"urgency_score"</span>: <span class="ph-val">1-10</span>,
+  <span class="ph-key">"sla_bucket"</span>: <span class="ph-str">"IMMEDIATE|SAME_DAY|NEXT_DAY|WEEKLY|NONE"</span>,
+  <span class="ph-key">"sender_category"</span>: <span class="ph-str">"REGULATORY_AUTHORITY|SPONSOR|CRO_PARTNER|SITE_PI|ETHICS_COMMITTEE|PATIENT_ADVOCACY|INTERNAL|OTHER"</span>,
+  <span class="ph-key">"safety_signal_detected"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"safety_signal_type"</span>: <span class="ph-str">"SAE|SUSAR|PROTOCOL_DEVIATION|DATA_INTEGRITY|INSPECTION|null"</span>,
+  <span class="ph-key">"regulatory_instrument"</span>: <span class="ph-str">"name of regulatory document/process if applicable"</span>,
+  <span class="ph-key">"clinical_terms_detected"</span>: [<span class="ph-str">"term1"</span>, <span class="ph-str">"term2"</span>],
+  <span class="ph-key">"intent"</span>: <span class="ph-str">"..."</span>,
+  <span class="ph-key">"requires_pharmacovigilance_team"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"requires_regulatory_team"</span>: <span class="ph-val">true|false</span>,
+  <span class="ph-key">"classification_reason"</span>: <span class="ph-str">"one sentence"</span>,
+  <span class="ph-key">"confidence"</span>: <span class="ph-val">0.0-1.0</span>
+<span class="ph-bracket">}</span></div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p020')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-21 -->
+    <div class="prompt-card ink">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-021 · Enterprise</div>
+          <div class="pc-title">Legal Department Email Processor</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-ink">Legal</span>
+          <span class="badge badge-accent">High Stakes</span>
+          <span class="badge badge-gold">Contract Aware</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Designed for in-house legal teams or law firms processing high volumes of legal correspondence. Identifies document types, litigation signals, and deadline obligations with precision.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">ROLE:</span>
+You are an AI assistant processing incoming email for a legal department. Precision is critical — misclassification of legal correspondence can have serious consequences.
+
+<span class="ph-section">LEGAL DOCUMENT TYPE DETECTION:</span>
+<span class="ph-rule">LITIGATION</span>       Notice of Claim, Summons, Complaint, Subpoena, Discovery Request
+<span class="ph-rule">CONTRACT</span>         NDA, MSA, SOW, SLA, Amendment, Addendum, License Agreement
+<span class="ph-rule">REGULATORY</span>       Government inquiry, agency correspondence, compliance notice
+<span class="ph-rule">INTELLECTUAL_PROPERTY</span>  Patent, trademark, copyright, infringement notice
+<span class="ph-rule">EMPLOYMENT</span>       Termination, discrimination claim, EEOC, HR legal matter
+<span class="ph-rule">CORPORATE</span>        Board resolutions, M&amp;A correspondence, shareholder matters
+<span class="ph-rule">GENERAL_COUNSEL</span>  Business legal questions, advice requests from internal teams
+
+<span class="ph-section">PRIVILEGE ASSESSMENT:</span>
+Flag potential attorney-client privilege communications:
+• From: attorney to client
+• Contains legal advice or legal strategy
+• Marked "Privileged and Confidential" or "Attorney-Client Privileged"
+→ These should NEVER be shared outside legal without explicit authorization
+
+<span class="ph-section">STATUTE OF LIMITATIONS / DEADLINE FLAGS:</span>
+Any email that creates or references a legal deadline must be flagged with:
+• Type of deadline (response to complaint, discovery deadline, filing deadline)
+• Stated date if present
+• Jurisdiction if mentioned
+
+<span class="ph-section">RESPONSE GUIDANCE:</span>
+Legal department emails rarely have "standard" responses.
+All outbound legal responses should be marked: requires_attorney_review = true
+NEVER draft substantive legal positions — only acknowledgment language.
+
+Return JSON with all above fields plus standard classification fields.</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p021')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-22 -->
+    <div class="prompt-card teal">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-022 · Enterprise</div>
+          <div class="pc-title">SaaS Customer Success Email Processor</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-teal">SaaS</span>
+          <span class="badge badge-green">CS Team</span>
+          <span class="badge badge-gold">Churn Detection</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">Purpose-built for SaaS Customer Success teams handling support, onboarding, renewal, and churn prevention emails. Detects product feedback, feature requests, churn signals, and expansion opportunities.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">ROLE:</span>
+You process incoming emails for a SaaS Customer Success team. Your classifications drive triage, routing, and automated responses for customer emails.
+
+<span class="ph-section">EMAIL TYPE TAXONOMY:</span>
+<span class="ph-rule">SUPPORT_REQUEST</span>    Technical issue, bug report, "how do I...", feature not working
+<span class="ph-rule">ONBOARDING</span>         New customer setup, getting started, training request
+<span class="ph-rule">RENEWAL</span>            Contract renewal, subscription question, pricing inquiry
+<span class="ph-rule">EXPANSION</span>          Additional seats, new module interest, upsell signal
+<span class="ph-rule">FEATURE_REQUEST</span>    Product feedback, feature suggestion, roadmap question
+<span class="ph-rule">COMPLAINT</span>          Service dissatisfaction, SLA breach complaint
+<span class="ph-rule">CHURN_SIGNAL</span>       Cancellation request, competitor mention, dissatisfaction
+<span class="ph-rule">EXECUTIVE_SPONSOR</span>  Email from C-level at customer account — always escalate
+<span class="ph-rule">GENERAL_INQUIRY</span>    General questions, information requests
+
+<span class="ph-section">CHURN RISK SCORING:</span>
+Score 1–10 (10 = highest churn risk)
+High risk indicators: cancellation mentioned, competitor names, "evaluating alternatives",
+"not getting value", executive sponsor disengaged, multiple unresolved tickets referenced
+Low risk indicators: feature requests, expansion interest, positive feedback
+
+<span class="ph-section">HEALTH SIGNALS FOR CRM UPDATE:</span>
+• Product usage complaints → Health: DECLINING
+• Expansion interest → Health: GROWING  
+• Renewal discussion positive → Health: STABLE
+• Cancellation or churn signal → Health: AT_RISK
+
+Return JSON including: email_type, churn_risk_score, health_signal, expansion_opportunity, escalate_to_csm, account_tier, priority_for_cs_team, recommended_response_template_id</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p022')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-23 -->
+    <div class="prompt-card green">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-023 · Enterprise</div>
+          <div class="pc-title">Prompt Self-Improvement &amp; Feedback Loop</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-green">ML / Training</span>
+          <span class="badge badge-purple">Few-Shot Builder</span>
+          <span class="badge badge-ink">Meta Prompt</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">A meta-prompt for building your own few-shot training examples from Director corrections. When the AI misclassifies an email, use this to generate a structured training example that improves future accuracy.</div>
+        <div class="pc-use-label">System Prompt</div>
+        <div class="prompt-block"><span class="pb-label">SYSTEM</span><span class="ph-section">TASK:</span>
+Generate a few-shot training example from a human correction of an AI classification. This example will be added to the classification system prompt to improve future accuracy.
+
+<span class="ph-section">INPUT FORMAT:</span>
+You will receive:
+1. The original email (or a summary)
+2. The AI's original classification
+3. The human's corrected classification
+4. (Optionally) the human's reason for correction
+
+<span class="ph-section">OUTPUT FORMAT:</span>
+Generate a clear, reusable few-shot example in this structure:
+
+<span class="ph-rule">EXAMPLE FORMAT TO GENERATE:</span>
+---
+Email: [2-3 sentence description of the email's key characteristics]
+Sender: [role + domain type]  
+Key signals: [list the 3-4 signals that should drive classification]
+Correct classification: [priority_class, urgency_score, sla_bucket, intent]
+Reason: [1-2 sentences explaining WHY this is the correct classification]
+Common mistake to avoid: [what the AI got wrong and why it was wrong]
+---
+
+<span class="ph-section">GUIDELINES FOR GOOD FEW-SHOT EXAMPLES:</span>
+• Focus on what made this email UNIQUE or TRICKY
+• Highlight the signal that the AI missed
+• Make it general enough to apply to similar future emails
+• Keep it concise — examples must not bloat the system prompt
+• Group by domain (regulatory, client, internal) for organized injection
+
+Return the formatted few-shot example as plain text, ready to copy into a system prompt.</div>
+        <div class="pc-use-label">User Prompt Template</div>
+        <div class="prompt-block user-prompt"><span class="pb-label dark">USER</span>Original email summary: {{email_summary}}
+Sender domain: {{sender_domain}}
+
+AI classified as: {{ai_classification}}
+Human corrected to: {{correct_classification}}
+Reason for correction: {{correction_reason}}
+
+Generate a few-shot training example.</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p023')">&#9654; Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- P-24: BONUS — Complete Variables Reference -->
+    <div class="prompt-card purple">
+      <div class="pc-header">
+        <div class="pc-title-wrap">
+          <div class="pc-id">P-024 · Reference</div>
+          <div class="pc-title">Complete Variables &amp; Customization Reference</div>
+        </div>
+        <div class="pc-badges">
+          <span class="badge badge-purple">Developer Ref</span>
+          <span class="badge badge-ink">All Variables</span>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-desc">A complete reference of all template variables used across this prompt library. Substitute these in your n8n, Make, or Python code. Includes recommended data sources for each variable.</div>
+        <table class="vars-table">
+          <thead>
+            <tr><th>Variable</th><th>Description</th><th>Source</th><th>Example Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>{{user_name}}</td><td>Full name of the email owner</td><td>Config / env var</td><td>Dr. Sarah Mitchell</td></tr>
+            <tr><td>{{user_title}}</td><td>Professional title</td><td>Config / env var</td><td>Director, Clinical Operations</td></tr>
+            <tr><td>{{company_name}}</td><td>Organization name</td><td>Config / env var</td><td>IQVIA</td></tr>
+            <tr><td>{{user_email}}</td><td>Director's email address</td><td>Gmail OAuth identity</td><td>s.mitchell@iqvia.com</td></tr>
+            <tr><td>{{user_timezone}}</td><td>User's timezone for scheduling</td><td>Config / env var</td><td>America/New_York</td></tr>
+            <tr><td>{{working_hours}}</td><td>Typical working hours</td><td>Config</td><td>Mon–Fri 8am–7pm EST</td></tr>
+            <tr><td>{{preferred_signoff}}</td><td>Email closing line</td><td>Config</td><td>Best regards,</td></tr>
+            <tr><td>{{sender_name}}</td><td>Parsed From header name</td><td>Gmail API / Parser</td><td>John Chen</td></tr>
+            <tr><td>{{sender_email}}</td><td>Parsed From header email</td><td>Gmail API / Parser</td><td>j.chen@pfizer.com</td></tr>
+            <tr><td>{{sender_domain}}</td><td>Domain portion of sender email</td><td>Parser code</td><td>pfizer.com</td></tr>
+            <tr><td>{{recipient_email}}</td><td>TO: field content</td><td>Gmail API header</td><td>s.mitchell@iqvia.com</td></tr>
+            <tr><td>{{cc_list}}</td><td>CC: field content</td><td>Gmail API header</td><td>legal@iqvia.com</td></tr>
+            <tr><td>{{subject}}</td><td>Email subject line</td><td>Gmail API header</td><td>URGENT: Protocol Amendment</td></tr>
+            <tr><td>{{email_body}}</td><td>Cleaned email body text</td><td>Parser code (strip quotes)</td><td>...</td></tr>
+            <tr><td>{{received_at}}</td><td>ISO 8601 receive timestamp</td><td>Gmail internalDate</td><td>2026-03-20T09:15:00Z</td></tr>
+            <tr><td>{{attachment_list}}</td><td>Comma-separated attachment names</td><td>Parser code</td><td>Amendment_v3.pdf, Protocol.docx</td></tr>
+            <tr><td>{{department_registry}}</td><td>JSON map of dept → email → topics</td><td>Config DB table</td><td>See P-016</td></tr>
+            <tr><td>{{label_taxonomy}}</td><td>List of allowed Gmail labels</td><td>Gmail API labelsList</td><td>See P-017</td></tr>
+            <tr><td>{{ea_email}}</td><td>Executive Assistant email</td><td>Config</td><td>ea@iqvia.com</td></tr>
+            <tr><td>{{preferred_meeting_slots}}</td><td>Director's preferred meeting times</td><td>Config</td><td>Tue/Thu 2-5pm EST</td></tr>
+          </tbody>
+        </table>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p024')">&#9654; Copy Table</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- FOOTER -->
+<div class="footer-strip">
+  <div>
+    <strong>Gmail Automation Prompt Library</strong> — Open Source · MIT License<br>
+    Born from the IQVIA Gmail Intelligence Hub Project · 24 production-tested prompts across 7 modules
+  </div>
+  <div style="text-align:right">
+    Compatible with Claude · GPT-4o · Gemini Pro<br>
+    For n8n · Make · Zapier · Python · any LLM pipeline
+  </div>
+</div>
+
+<script>
+function copyPrompt(btn, id) {
+  // Find the prompt-block nearest to the button
+  const card = btn.closest('.prompt-card');
+  const blocks = card.querySelectorAll('.prompt-block');
+  let text = '';
+  blocks.forEach(b => {
+    text += b.innerText + '\n\n---\n\n';
+  });
+  
+  navigator.clipboard.writeText(text.trim()).then(() => {
+    btn.classList.add('copied');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.textContent = '▶ Copy Prompt';
+    }, 2000);
+  }).catch(() => {
+    // Fallback: select text
+    const range = document.createRange();
+    range.selectNode(blocks[0]);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+// Smooth scroll for index
+document.querySelectorAll('.index-item').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
