@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Email Intelligence Hub — v4.0</title>
+<style>
+:root{
+  --bg:#07090d;--surface:#0c1017;--panel:#111820;--raised:#161f2a;
+  --border:#1a2535;--border2:#243348;--border3:#2e4060;
+  --text:#c8d8e8;--muted:#4a6a84;--faint:#2a3f52;
+  --accent:#00c8f0;--accent2:#0090b8;--accent3:#006888;
+  --critical:#f03050;--high:#f07828;--medium:#f0c828;--low:#18c890;--noise:#2a4a62;
+  --legal:#b870f8;--financial:#f86090;--regulatory:#f89018;--security:#f03050;
+  --info:#2878f0;--success:#18c890;--warn:#f07828;
+  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --r:4px;--r2:6px;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;height:100%;overflow:hidden;line-height:1.4}
+input,select,textarea,button{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-rows:48px 56px 1fr;height:100vh}
+.panel-3{display:grid;grid-template-columns:260px 1fr 320px;height:100%;overflow:hidden}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border);z-index:100}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:28px;height:28px;border:1.5px solid var(--accent);display:grid;place-items:center;position:relative;flex-shrink:0}
+.logo-mark::after{content:'';position:absolute;inset:3px;border:1px solid rgba(0,200,240,.25);animation:pulse 2.5s ease-in-out infinite}
+.logo-mark-inner{color:var(--accent);font-size:13px;font-family:var(--mono)}
+@keyframes pulse{0%,100%{opacity:.2;transform:scale(.95)}50%{opacity:.8;transform:scale(1.02)}}
+.logo-text{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.logo-ver{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.06em}
+.topbar-tabs{display:flex;gap:2px;margin-left:8px}
+.ttab{padding:5px 12px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:transparent;border:1px solid transparent;color:var(--muted);transition:all .15s;border-radius:var(--r)}
+.ttab:hover{color:var(--text);border-color:var(--border2)}
+.ttab.active{color:var(--accent);border-color:var(--accent3);background:rgba(0,200,240,.07)}
+.topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.conn-indicator{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border:1px solid;border-radius:20px;transition:all .3s}
+.conn-indicator.connected{color:var(--low);border-color:rgba(24,200,144,.3);background:rgba(24,200,144,.07)}
+.conn-indicator.connecting{color:var(--medium);border-color:rgba(240,200,40,.3);background:rgba(240,200,40,.07)}
+.conn-indicator.disconnected{color:var(--muted);border-color:var(--border);background:transparent}
+.conn-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.conn-indicator.connected .conn-dot{animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-btn{padding:5px 12px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--muted);border-radius:var(--r);transition:all .15s}
+.topbar-btn:hover{color:var(--text);border-color:var(--border3)}
+.topbar-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.topbar-btn.primary:hover{opacity:.88}
+kbd{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid var(--border2);border-radius:3px;color:var(--muted);background:var(--panel)}
+
+/* ── STAT BAR ── */
+.statbar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.stat{flex:1;min-width:90px;padding:10px 14px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;cursor:default;transition:background .12s}
+.stat:hover{background:rgba(255,255,255,.018)}
+.stat:last-child{border-right:none}
+.stat-l{font-family:var(--mono);font-size:7px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.stat-v{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text);line-height:1}
+.stat-v.c{color:var(--critical)} .stat-v.h{color:var(--high)} .stat-v.a{color:var(--accent)}
+.stat-s{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.stat-s.up{color:var(--critical)} .stat-s.dn{color:var(--low)}
+
+/* ── QUEUE PANEL ── */
+.queue{display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--border);overflow:hidden}
+.qhdr{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.qhdr-title{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.qhdr-count{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.qsearch{padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.search-input{width:100%;padding:5px 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;border-radius:var(--r);outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--accent3)}
+.search-input::placeholder{color:var(--muted)}
+.qfilters{display:flex;gap:4px;padding:6px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0}
+.fc{padding:2px 7px;font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:2px;transition:all .12s}
+.fc:hover{border-color:var(--border3);color:var(--text)}
+.fc.on-all{border-color:var(--accent);color:var(--accent);background:rgba(0,200,240,.07)}
+.fc.on-c{border-color:var(--critical);color:var(--critical);background:rgba(240,48,80,.08)}
+.fc.on-h{border-color:var(--high);color:var(--high);background:rgba(240,120,40,.08)}
+.fc.on-m{border-color:var(--medium);color:var(--medium);background:rgba(240,200,40,.07)}
+.fc.on-l{border-color:var(--low);color:var(--low);background:rgba(24,200,144,.07)}
+.qlist{flex:1;overflow-y:auto}
+
+/* ── EMAIL ITEM ── */
+.eitem{padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;transition:background .1s;border-left:2px solid transparent}
+.eitem:hover{background:rgba(255,255,255,.022)}
+.eitem.sel{background:rgba(0,200,240,.05);border-left-color:var(--accent)}
+.eitem.pri-CRITICAL{border-left-color:var(--critical)}
+.eitem.pri-HIGH{border-left-color:var(--high)}
+.eitem.pri-MEDIUM{border-left-color:var(--medium)}
+.eitem.pri-LOW{border-left-color:var(--low)}
+.eitem.pri-NOISE{border-left-color:var(--noise);opacity:.7}
+.eitem.acted{opacity:.55}
+.eitem.acted::after{content:'✓';position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:9px;color:var(--low)}
+.ei-row1{display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-bottom:3px}
+.ei-sender{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.ei-time{font-family:var(--mono);font-size:8px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.ei-subject{font-size:11px;color:var(--text);opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.ei-badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.b{padding:1px 4px;font-family:var(--mono);font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:1px}
+.b-c{border-color:var(--critical);color:var(--critical);background:rgba(240,48,80,.1)}
+.b-h{border-color:var(--high);color:var(--high);background:rgba(240,120,40,.1)}
+.b-m{border-color:var(--medium);color:var(--medium);background:rgba(240,200,40,.07)}
+.b-l{border-color:var(--low);color:var(--low);background:rgba(24,200,144,.08)}
+.b-n{border-color:var(--noise);color:var(--muted)}
+.b-legal{border-color:var(--legal);color:var(--legal);background:rgba(184,112,248,.08)}
+.b-fin{border-color:var(--financial);color:var(--financial);background:rgba(248,96,144,.08)}
+.b-reg{border-color:var(--regulatory);color:var(--regulatory);background:rgba(248,144,24,.08)}
+.b-sec{border-color:var(--security);color:var(--security);background:rgba(240,48,80,.1)}
+.b-vip{border-color:#c8a800;color:#c8a800;background:rgba(200,168,0,.08)}
+.b-muted{border-color:var(--border2);color:var(--muted)}
+.b-info{border-color:var(--accent3);color:var(--accent)}
+.sla-track{height:2px;background:var(--border);margin-top:5px;border-radius:1px;overflow:hidden}
+.sla-fill{height:100%;border-radius:1px;transition:width .3s}
+.sla-ok{background:var(--low)} .sla-warn{background:var(--medium)} .sla-breach{background:var(--critical);animation:sla-pulse .7s ease-in-out infinite alternate}
+@keyframes sla-pulse{from{opacity:1}to{opacity:.35}}
+.qempty{padding:32px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.12em;line-height:1.8}
+
+/* ── DETAIL PANEL ── */
+.detail{display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.de-icon{font-family:var(--mono);font-size:36px;color:var(--faint)}
+.de-text{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.de-hint{font-family:var(--mono);font-size:8px;color:var(--faint)}
+.detail-inner{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.dhdr{padding:16px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.dh-row1{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ptag{padding:2px 8px;font-family:var(--mono);font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border-radius:var(--r)}
+.ptag-CRITICAL{background:var(--critical);color:#000}
+.ptag-HIGH{background:var(--high);color:#000}
+.ptag-MEDIUM{background:var(--medium);color:#000}
+.ptag-LOW{background:var(--low);color:#000}
+.ptag-NOISE{background:var(--noise);color:var(--text)}
+.dh-intent{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.dh-time{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto}
+.dh-subject{font-size:15px;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:6px}
+.dh-from{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px}
+.dh-from span{color:var(--accent)}
+.dh-flags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.dh-sla{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.sla-cd{font-size:10px;font-weight:700;color:var(--accent);transition:color .3s}
+.sla-cd.warn{color:var(--medium)} .sla-cd.breach{color:var(--critical);animation:blink 1s infinite}
+.dbody{flex:1;overflow-y:auto;padding:16px 20px}
+.sec{margin-bottom:20px}
+.sec-title{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.ai-box{font-size:12px;line-height:1.65;color:var(--text);padding:10px 12px;background:var(--panel);border-left:2px solid var(--accent);border-radius:0 var(--r) var(--r) 0}
+.kquote{font-family:var(--mono);font-size:10px;color:var(--accent);padding:7px 10px;background:rgba(0,200,240,.05);border-left:2px solid var(--accent2);font-style:italic;margin-top:6px;border-radius:0 var(--r) var(--r) 0}
+.alist{list-style:none;display:flex;flex-direction:column;gap:4px}
+.alist li{padding:5px 5px 5px 16px;position:relative;font-size:11px;color:var(--text);border-bottom:1px solid var(--border);line-height:1.45}
+.alist li:last-child{border:none}
+.alist li::before{content:'→';position:absolute;left:2px;color:var(--accent);font-family:var(--mono);font-size:9px}
+.dl-item{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;align-items:baseline}
+.dl-item:last-child{border:none}
+.dl-date{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--high);white-space:nowrap}
+.dl-date.hard{color:var(--critical)}
+.sk-item{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px}
+.sk-av{width:20px;height:20px;background:var(--panel);border:1px solid var(--border2);display:grid;place-items:center;font-family:var(--mono);font-size:7px;font-weight:700;color:var(--accent);flex-shrink:0;border-radius:2px}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sig-cell{padding:8px 10px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r)}
+.sig-n{font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.sig-v{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text)}
+.conf-track{height:3px;background:var(--border);margin-top:5px;border-radius:2px}
+.conf-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s}
+.raw{font-size:11px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;padding:10px 12px;background:var(--panel);border:1px solid var(--border);max-height:260px;overflow-y:auto;border-radius:var(--r);opacity:.82}
+.reason-text{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.5;margin-top:6px}
+
+/* ── ACTION PANEL ── */
+.actions{display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);overflow:hidden}
+.ahdr{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ahdr-title{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.draft-wrap{flex:1;display:flex;flex-direction:column;padding:10px 12px;gap:6px;min-height:0}
+.draft-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+.draft-ta{flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:11px;line-height:1.65;padding:10px;resize:none;outline:none;transition:border-color .15s;border-radius:var(--r);min-height:0}
+.draft-ta:focus{border-color:var(--accent3)}
+.draft-ta::placeholder{color:var(--muted)}
+.draft-meta{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:8px;color:var(--muted);flex-wrap:wrap;flex-shrink:0}
+.dm-warn{color:var(--medium)}
+.flag-warns{display:flex;flex-direction:column;gap:4px;padding:0 12px;flex-shrink:0}
+.fw{padding:5px 8px;font-size:9px;font-family:var(--mono);border:1px solid;display:flex;align-items:center;gap:5px;border-radius:var(--r)}
+.fw-legal{border-color:rgba(184,112,248,.4);color:var(--legal);background:rgba(184,112,248,.06)}
+.fw-reg{border-color:rgba(248,144,24,.4);color:var(--regulatory);background:rgba(248,144,24,.06)}
+.fw-fin{border-color:rgba(248,96,144,.4);color:var(--financial);background:rgba(248,96,144,.06)}
+.dwarns{margin:4px 12px;padding:7px 9px;background:rgba(240,120,40,.06);border:1px solid rgba(240,120,40,.22);font-size:10px;color:var(--high);line-height:1.5;flex-shrink:0;border-radius:var(--r)}
+.dwarns strong{font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:3px}
+.fb-row{padding:8px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.fb-l{font-family:var(--mono);font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.fb-sel{width:100%;padding:5px 7px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;outline:none;margin-bottom:5px;border-radius:var(--r)}
+.fb-sel:focus{border-color:var(--accent3)}
+.fb-input{width:100%;padding:5px 7px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:10px;resize:none;height:36px;outline:none;border-radius:var(--r)}
+.fb-input:focus{border-color:var(--accent3)}
+.snz-row{padding:8px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.snz-l{font-family:var(--mono);font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.snz-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.snz-opt{padding:6px;font-family:var(--mono);font-size:9px;text-align:center;background:var(--panel);border:1px solid var(--border);color:var(--text);transition:all .12s;border-radius:var(--r)}
+.snz-opt:hover{border-color:var(--medium);color:var(--medium)}
+.abtns{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.abtns-hint{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.abtn{padding:8px 12px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:var(--r);position:relative}
+.abtn:disabled{opacity:.4;cursor:not-allowed}
+.abtn-approve{background:rgba(24,200,144,.1);border-color:var(--low);color:var(--low)}
+.abtn-approve:hover:not(:disabled){background:rgba(24,200,144,.2)}
+.abtn-edit{background:rgba(0,200,240,.07);border-color:var(--accent);color:var(--accent)}
+.abtn-edit:hover:not(:disabled){background:rgba(0,200,240,.15)}
+.abtn-row{display:flex;gap:5px}
+.abtn-row .abtn{flex:1}
+.abtn-reject{background:transparent;border-color:var(--border2);color:var(--muted)}
+.abtn-reject:hover:not(:disabled){border-color:var(--critical);color:var(--critical);background:rgba(240,48,80,.07)}
+.abtn-snooze{background:transparent;border-color:var(--border2);color:var(--muted)}
+.abtn-snooze:hover:not(:disabled){border-color:var(--medium);color:var(--medium);background:rgba(240,200,40,.07)}
+.abtn-escalate{background:transparent;border-color:var(--border2);color:var(--muted)}
+.abtn-escalate:hover:not(:disabled){border-color:var(--legal);color:var(--legal);background:rgba(184,112,248,.07)}
+.spin{display:inline-block;width:10px;height:10px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── ANALYTICS VIEW ── */
+.analytics{display:none;padding:20px;overflow-y:auto;height:100%}
+.analytics.on{display:block}
+.ag{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.acard{background:var(--surface);border:1px solid var(--border);padding:14px 16px;border-radius:var(--r2)}
+.acard-l{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.acard-v{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+.acard-s{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.ccrd{background:var(--surface);border:1px solid var(--border);padding:14px 16px;border-radius:var(--r2)}
+.ccrd-t{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.brow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;margin-bottom:7px}
+.brow:last-child{margin-bottom:0}
+.brow-l{width:80px;color:var(--muted);text-align:right;flex-shrink:0}
+.btrack{flex:1;height:10px;background:var(--panel);border-radius:2px;position:relative;overflow:hidden}
+.bfill{position:absolute;inset:0;border-radius:2px;transition:width .7s ease}
+.bcount{width:28px;text-align:right;color:var(--text);flex-shrink:0}
+.sla-t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px}
+.sla-t th{padding:5px 10px;border-bottom:1px solid var(--border);color:var(--muted);font-size:7px;letter-spacing:.12em;text-transform:uppercase;text-align:left;font-weight:600}
+.sla-t td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.sla-t tr:hover td{background:rgba(255,255,255,.015)}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-ov.on{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);width:520px;max-height:85vh;overflow-y:auto;border-radius:var(--r2);box-shadow:var(--shadow)}
+.mhdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mhdr-title{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.mclose{font-family:var(--mono);font-size:15px;color:var(--muted);background:none;border:none;padding:2px 6px;border-radius:2px;transition:color .12s}
+.mclose:hover{color:var(--text)}
+.mbody{padding:18px;display:flex;flex-direction:column;gap:12px}
+.mfg{display:flex;flex-direction:column;gap:4px}
+.mfl{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.mfi{width:100%;padding:6px 9px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;outline:none;transition:border-color .12s;border-radius:var(--r)}
+.mfi:focus{border-color:var(--accent3)}
+.mfi::placeholder{color:var(--muted);opacity:.5}
+.mhint{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:2px}
+.minfo{padding:9px 11px;background:var(--panel);border:1px solid var(--border);font-size:10px;color:var(--muted);line-height:1.6;border-radius:var(--r)}
+.mftr{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end}
+.mbtn{padding:7px 16px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid;border-radius:var(--r);transition:all .15s}
+.mbtn-save{background:var(--accent);color:#000;border-color:var(--accent)}
+.mbtn-save:hover{opacity:.85}
+.mbtn-cancel{background:transparent;border-color:var(--border);color:var(--muted)}
+.mbtn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.mbtn-demo{background:rgba(0,200,240,.08);border-color:var(--accent3);color:var(--accent);font-size:9px}
+.mbtn-demo:hover{background:rgba(0,200,240,.16)}
+
+/* ── TOAST ── */
+.toasts{position:fixed;bottom:16px;right:16px;z-index:9000;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.toast{padding:9px 14px;background:var(--raised);border:1px solid var(--border2);border-left:3px solid var(--accent);font-family:var(--mono);font-size:9px;color:var(--text);min-width:200px;max-width:340px;animation:slide-in .2s ease;display:flex;align-items:center;gap:8px;border-radius:var(--r);box-shadow:var(--shadow)}
+.toast.s{border-left-color:var(--low)} .toast.e{border-left-color:var(--critical)} .toast.w{border-left-color:var(--high)}
+@keyframes slide-in{from{transform:translateX(32px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── LOADING STATES ── */
+.skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--border) 50%,var(--panel) 75%);background-size:200%;animation:skel 1.4s infinite;border-radius:var(--r)}
+@keyframes skel{0%{background-position:200%}100%{background-position:-200%}}
+.loading-bar{height:2px;background:var(--accent);width:0%;transition:width .3s;position:fixed;top:0;left:0;z-index:9999;animation:none}
+.loading-bar.on{animation:load-bar 1s ease-in-out infinite alternate}
+@keyframes load-bar{from{width:30%;opacity:.7}to{width:80%;opacity:1}}
+
+/* ── RESPONSIVE HINTS ── */
+.tag-pill{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:10px}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadingBar"></div>
+
+<div class="app" id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-mark-inner">◈</div></div>
+      <div>
+        <div class="logo-text">Email Intelligence Hub</div>
+        <div class="logo-ver">v4.0 — Operations Dashboard</div>
+      </div>
+    </div>
+    <div class="topbar-tabs">
+      <button class="ttab active" onclick="switchView('inbox')" id="tab-inbox">Inbox</button>
+      <button class="ttab" onclick="switchView('sla')" id="tab-sla">SLA Monitor</button>
+      <button class="ttab" onclick="switchView('analytics')" id="tab-analytics">Analytics</button>
+    </div>
+    <div class="topbar-right">
+      <div class="conn-indicator disconnected" id="connBadge">
+        <div class="conn-dot"></div>
+        <span id="connText">NOT CONNECTED</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="urlDisplay">—</div>
+      <button class="topbar-btn" onclick="manualRefresh()" title="Refresh (R)">↻ Refresh</button>
+      <button class="topbar-btn primary" onclick="openConfig()">⚙ Configure</button>
+    </div>
+  </div>
+
+  <!-- STAT BAR -->
+  <div class="statbar">
+    <div class="stat"><div class="stat-l">Total</div><div class="stat-v a" id="sTotal">0</div><div class="stat-s" id="sTotalS">—</div></div>
+    <div class="stat"><div class="stat-l">Critical</div><div class="stat-v c" id="sCrit">0</div><div class="stat-s up" id="sCritS">immediate action</div></div>
+    <div class="stat"><div class="stat-l">High</div><div class="stat-v h" id="sHigh">0</div><div class="stat-s">same day</div></div>
+    <div class="stat"><div class="stat-l">Pending</div><div class="stat-v" id="sPend">0</div><div class="stat-s">awaiting decision</div></div>
+    <div class="stat"><div class="stat-l">SLA Breaches</div><div class="stat-v" id="sBreach">0</div><div class="stat-s up" id="sBreachS">—</div></div>
+    <div class="stat"><div class="stat-l">Avg Confidence</div><div class="stat-v a" id="sConf">—</div><div class="stat-s">AI accuracy</div></div>
+    <div class="stat"><div class="stat-l">Draft Approval</div><div class="stat-v a" id="sDraft">—</div><div class="stat-s">acceptance rate</div></div>
+    <div class="stat"><div class="stat-l">Legal Flags</div><div class="stat-v" id="sLegal">0</div><div class="stat-s">counsel required</div></div>
+  </div>
+
+  <!-- INBOX VIEW -->
+  <div class="panel-3" id="inboxView">
+    <!-- LEFT: Queue -->
+    <div class="queue">
+      <div class="qhdr">
+        <div class="qhdr-title">Email Queue</div>
+        <div class="qhdr-count" id="qCount">0 emails</div>
+      </div>
+      <div class="qsearch">
+        <input class="search-input" id="searchInput" placeholder="Search subject, sender…" oninput="onSearch(this.value)">
+      </div>
+      <div class="qfilters">
+        <button class="fc on-all" onclick="setFilter('all',this)">All</button>
+        <button class="fc" onclick="setFilter('CRITICAL',this)">Critical</button>
+        <button class="fc" onclick="setFilter('HIGH',this)">High</button>
+        <button class="fc" onclick="setFilter('MEDIUM',this)">Medium</button>
+        <button class="fc" onclick="setFilter('LOW',this)">Low</button>
+        <button class="fc" onclick="setFilter('PENDING',this)">Pending</button>
+      </div>
+      <div class="qlist" id="emailList"></div>
+    </div>
+
+    <!-- CENTER: Detail -->
+    <div class="detail" id="detailPanel">
+      <div class="detail-empty" id="detailEmpty">
+        <div class="de-icon">◈</div>
+        <div class="de-text">Select an email to review</div>
+        <div class="de-hint">← Use keyboard ↑↓ to navigate</div>
+      </div>
+      <div class="detail-inner" id="detailInner" style="display:none">
+        <div class="dhdr">
+          <div class="dh-row1">
+            <div class="ptag" id="dPriTag">—</div>
+            <div class="dh-intent" id="dIntent">—</div>
+            <div class="dh-time" id="dTime">—</div>
+          </div>
+          <div class="dh-subject" id="dSubject">—</div>
+          <div class="dh-from">From: <span id="dFrom">—</span> &lt;<span id="dEmail">—</span>&gt; &nbsp;·&nbsp; <span id="dDomain">—</span></div>
+          <div class="dh-flags" id="dFlags"></div>
+          <div class="dh-sla">
+            <span>SLA:</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--accent)" id="dBucket">—</span>
+            <span>·</span>
+            <span>Deadline: <span class="sla-cd" id="dCD">—</span></span>
+            <span>·</span>
+            <span>Urgency <span style="font-family:var(--mono);color:var(--text)" id="dUrg">—</span>/10</span>
+            <span>·</span>
+            <span>Conf. <span style="font-family:var(--mono);color:var(--accent)" id="dConf">—</span></span>
+          </div>
+        </div>
+        <div class="dbody" id="detailBody"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Actions -->
+    <div class="actions">
+      <div class="ahdr">
+        <div class="ahdr-title">Reply Draft</div>
+        <div id="draftBadge"></div>
+      </div>
+      <div class="draft-wrap" id="draftWrap">
+        <div class="draft-empty" id="draftEmpty">SELECT AN EMAIL</div>
+        <textarea class="draft-ta" id="draftTA" placeholder="AI draft appears here…" style="display:none" oninput="onDraftInput()"></textarea>
+        <div class="draft-meta" id="draftMeta" style="display:none"></div>
+      </div>
+      <div class="flag-warns" id="flagWarns"></div>
+      <div class="dwarns" id="draftWarns" style="display:none">
+        <strong>⚠ Review before sending</strong>
+        <div id="draftWarnItems"></div>
+      </div>
+      <div class="fb-row" id="fbRow" style="display:none">
+        <div class="fb-l">Feedback for AI learning</div>
+        <select class="fb-sel" id="fbPriority">
+          <option value="">— Priority was correct —</option>
+          <option value="CRITICAL">Should be CRITICAL</option>
+          <option value="HIGH">Should be HIGH</option>
+          <option value="MEDIUM">Should be MEDIUM</option>
+          <option value="LOW">Should be LOW</option>
+          <option value="NOISE">Should be NOISE</option>
+        </select>
+        <textarea class="fb-input" id="fbNote" placeholder="Notes for AI learning…"></textarea>
+      </div>
+      <div class="snz-row" id="snzRow" style="display:none">
+        <div class="snz-l">Snooze for</div>
+        <div class="snz-grid">
+          <button class="snz-opt" onclick="doAction('SNOOZE',60)">1 hour</button>
+          <button class="snz-opt" onclick="doAction('SNOOZE',240)">4 hours</button>
+          <button class="snz-opt" onclick="doAction('SNOOZE',480)">Tomorrow AM</button>
+          <button class="snz-opt" onclick="doAction('SNOOZE',1440)">24 hours</button>
+        </div>
+      </div>
+      <div class="abtns" id="actBtns">
+        <div class="abtns-hint">Actions → n8n approval webhook</div>
+        <button class="abtn abtn-approve" id="btnApprove" onclick="doAction('APPROVE')" disabled>✓ &nbsp;Approve &amp; Send</button>
+        <button class="abtn abtn-edit" id="btnEdit" onclick="doAction('EDIT_SEND')" disabled>✎ &nbsp;Send Edited Reply</button>
+        <div class="abtn-row">
+          <button class="abtn abtn-reject" id="btnReject" onclick="doAction('REJECT')" disabled>✕ Reject</button>
+          <button class="abtn abtn-snooze" id="btnSnooze" onclick="toggleSnooze()" disabled>⏱ Snooze</button>
+          <button class="abtn abtn-escalate" id="btnEscalate" onclick="doAction('ESCALATE')" disabled>↑ Escalate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS VIEW -->
+  <div class="analytics" id="analyticsView">
+    <div class="ag" id="ag"></div>
+    <div class="chart-row">
+      <div class="ccrd"><div class="ccrd-t">Volume by Priority</div><div id="priChart"></div></div>
+      <div class="ccrd"><div class="ccrd-t">Domain Categories</div><div id="domChart"></div></div>
+    </div>
+    <div class="ccrd" style="margin-bottom:20px">
+      <div class="ccrd-t">SLA Breaches</div>
+      <table class="sla-t" id="slaT">
+        <thead><tr><th>Subject</th><th>From</th><th>Priority</th><th>SLA</th><th>Alert</th><th>Overdue</th><th>Checked</th></tr></thead>
+        <tbody id="slaTBody"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:16px">No SLA breaches</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="modal-ov" id="cfgModal">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mhdr-title">◈ Dashboard Configuration</div>
+      <button class="mclose" onclick="closeConfig()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="minfo">
+        <strong style="color:var(--accent);font-family:var(--mono);font-size:8px;letter-spacing:.1em">Ingest URL</strong> — where n8n pushes classified emails (set as DASHBOARD_WEBHOOK in n8n).<br>
+        <strong style="color:var(--accent);font-family:var(--mono);font-size:8px;letter-spacing:.1em">Webhook URL</strong> — where this dashboard posts approve/reject actions back to n8n (node p4-01).<br>
+        The <strong style="color:var(--accent);font-family:var(--mono);font-size:8px">Webhook Secret</strong> must match on both sides.
+      </div>
+      <div class="mfg">
+        <div class="mfl">Ingest API URL (n8n → Dashboard)</div>
+        <input class="mfi" id="cfgIngest" placeholder="http://127.0.0.1:3001/api/emails/pending">
+        <div class="mhint">Set DASHBOARD_WEBHOOK in n8n Build Push Payload node to this value</div>
+      </div>
+      <div class="mfg">
+        <div class="mfl">n8n Approval Webhook URL (Dashboard → n8n)</div>
+        <input class="mfi" id="cfgWebhook" placeholder="http://127.0.0.1:5678/webhook/email-action">
+        <div class="mhint">Path is /webhook/email-action — configured in node p4-01</div>
+      </div>
+      <div class="mfg">
+        <div class="mfl">Webhook Secret (x-webhook-secret header)</div>
+        <input class="mfi" id="cfgSecret" type="password" placeholder="my-secret-2026">
+        <div class="mhint">Must match DASHBOARD_SECRET in n8n and webhookSecret in server.js</div>
+      </div>
+      <div class="mfg">
+        <div class="mfl">Operator Name</div>
+        <input class="mfi" id="cfgName" placeholder="Akshat Jain">
+      </div>
+      <div class="mfg">
+        <div class="mfl">Auto-Refresh Interval (seconds, 0 = off)</div>
+        <input class="mfi" id="cfgInterval" type="number" placeholder="30" min="0" max="300">
+      </div>
+      <div style="padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="font-family:var(--mono);font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Demo Mode</div>
+        <div style="font-size:10px;color:var(--text);margin-bottom:8px;line-height:1.5">No n8n instance? Load 6 realistic synthetic emails to explore the dashboard.</div>
+        <button class="mbtn mbtn-demo" onclick="loadDemo();closeConfig()">Load Demo Data</button>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="mbtn mbtn-cancel" onclick="closeConfig()">Cancel</button>
+      <button class="mbtn mbtn-save" onclick="saveConfig()">Save &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  emails: [],
+  selected: null,
+  filter: 'all',
+  search: '',
+  slaBreaches: [],
+  actions: {},       // messageId → action
+  polling: null,
+  view: 'inbox',
+  loading: false,
+  cfg: {
+    ingestUrl: '',
+    webhookUrl: '',
+    secret: '',
+    name: 'Operator',
+    interval: 30,
+  },
+};
+
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+function loadCfg() {
+  const s = localStorage.getItem('eih4_cfg');
+  if (s) try { Object.assign(S.cfg, JSON.parse(s)); } catch(e) {}
+  applyUrlDisplay();
+}
+
+function applyUrlDisplay() {
+  document.getElementById('urlDisplay').textContent = S.cfg.ingestUrl || '— not configured —';
+}
+
+function openConfig() {
+  document.getElementById('cfgIngest').value   = S.cfg.ingestUrl  || '';
+  document.getElementById('cfgWebhook').value  = S.cfg.webhookUrl || '';
+  document.getElementById('cfgSecret').value   = S.cfg.secret     || '';
+  document.getElementById('cfgName').value     = S.cfg.name       || '';
+  document.getElementById('cfgInterval').value = S.cfg.interval   ?? 30;
+  document.getElementById('cfgModal').classList.add('on');
+}
+
+function closeConfig() {
+  document.getElementById('cfgModal').classList.remove('on');
+}
+
+function saveConfig() {
+  S.cfg.ingestUrl  = document.getElementById('cfgIngest').value.trim();
+  S.cfg.webhookUrl = document.getElementById('cfgWebhook').value.trim();
+  S.cfg.secret     = document.getElementById('cfgSecret').value.trim();
+  S.cfg.name       = document.getElementById('cfgName').value.trim() || 'Operator';
+  S.cfg.interval   = Math.max(0, parseInt(document.getElementById('cfgInterval').value) || 30);
+  localStorage.setItem('eih4_cfg', JSON.stringify(S.cfg));
+  closeConfig();
+  applyUrlDisplay();
+  toast('Configuration saved', 's');
+  setupPolling();
+  if (S.cfg.ingestUrl) fetchEmails();
+}
+
+// ═══════════════════════════════════════════════════════════
+// POLLING & FETCH
+// ═══════════════════════════════════════════════════════════
+function setupPolling() {
+  if (S.polling) { clearInterval(S.polling); S.polling = null; }
+  if (S.cfg.ingestUrl && S.cfg.interval > 0) {
+    S.polling = setInterval(fetchEmails, S.cfg.interval * 1000);
+  }
+}
+
+function setConn(state) {
+  const el  = document.getElementById('connBadge');
+  const txt = document.getElementById('connText');
+  el.className = 'conn-indicator ' + state;
+  const labels = { connected:'CONNECTED', connecting:'SYNCING…', disconnected:'NOT CONNECTED' };
+  txt.textContent = labels[state] || state;
+}
+
+function setLoading(on) {
+  document.getElementById('loadingBar').classList.toggle('on', on);
+  S.loading = on;
+}
+
+async function fetchEmails() {
+  if (!S.cfg.ingestUrl) return;
+  if (S.loading) return;
+  setLoading(true);
+  setConn('connecting');
+  try {
+    const r = await fetch(S.cfg.ingestUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    // server returns { ok, emails: [...] } or just an array
+    const incoming = Array.isArray(data) ? data : (data.emails || []);
+    let newCount = 0;
+    incoming.forEach(e => {
+      const norm = norm_email(e);
+      const exists = S.emails.find(x => x.messageId === norm.messageId);
+      if (!exists) {
+        S.emails.unshift(norm);
+        newCount++;
+        if (norm.priorityClass === 'CRITICAL') toast('CRITICAL: ' + norm.subject.substring(0,48), 'e');
+        else if (norm.priorityClass === 'HIGH' && !S.emails.find(x => x.messageId === norm.messageId))
+          toast('HIGH: ' + norm.subject.substring(0,50), 'w');
+      }
+    });
+    // Sort by priority then time
+    S.emails.sort((a,b) => {
+      const PO = { CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, NOISE:4 };
+      const pd = (PO[a.priorityClass]||5) - (PO[b.priorityClass]||5);
+      if (pd !== 0) return pd;
+      return new Date(b.receivedAt) - new Date(a.receivedAt);
+    });
+    setConn('connected');
+    if (newCount > 0) { renderList(); updateStats(); }
+  } catch(err) {
+    setConn('disconnected');
+    console.warn('[EIH] Fetch error:', err.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function manualRefresh() {
+  fetchEmails();
+  toast('Refreshing…', 'i');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAIL NORMALIZATION
+// ═══════════════════════════════════════════════════════════
+function norm_email(d) {
+  return {
+    messageId:            d.messageId        || d.message_id     || 'id_' + Date.now(),
+    threadId:             d.threadId         || d.thread_id      || '',
+    senderName:           d.senderName       || d.sender_name    || 'Unknown',
+    senderEmail:          d.senderEmail      || d.sender_email   || '',
+    senderDomain:         d.senderDomain     || d.sender_domain  || '',
+    subject:              d.subject          || '(No Subject)',
+    receivedAt:           d.receivedAt       || d.received_at    || new Date().toISOString(),
+    priorityClass:        d.priorityClass    || d.priority_class || 'MEDIUM',
+    urgencyScore:         d.urgencyScore     || d.urgency_score  || 5,
+    confidenceScore:      d.confidenceScore  || d.confidence_score|| 0.5,
+    slaBucket:            d.slaBucket        || d.sla_bucket     || 'NEXT_DAY',
+    slaDeadline:          d.slaDeadline      || d.sla_deadline   || null,
+    slaBreach:            !!(d.slaBreach     || d.sla_breach),
+    intent:               d.intent           || 'OTHER',
+    sentiment:            d.sentiment        || 'NEUTRAL',
+    emailSummary:         d.emailSummary     || d.email_summary  || '',
+    keyQuote:             d.keyQuote         || d.key_quote      || null,
+    classificationReason: d.classificationReason || d.classification_reason || '',
+    actionItems:          d.actionItems      || d.action_items   || [],
+    keyDeadlines:         d.keyDeadlines     || d.key_deadlines  || [],
+    keyStakeholders:      d.keyStakeholders  || d.key_stakeholders|| [],
+    monetaryAmounts:      d.monetaryAmounts  || d.monetary_amounts|| [],
+    referenceNumbers:     d.referenceNumbers || d.reference_numbers||[],
+    financialFlag:        !!(d.financialFlag || d.financial_flag),
+    legalFlag:            !!(d.legalFlag     || d.legal_flag),
+    regulatoryFlag:       !!(d.regulatoryFlag|| d.regulatory_flag),
+    securityFlag:         !!(d.securityFlag  || d.security_flag),
+    escalationRecommended:!!(d.escalationRecommended||d.escalation_recommended),
+    escalateTo:           d.escalateTo       || d.escalate_to    || null,
+    isVIP:                !!(d.isVIP         || d.is_vip),
+    isInternal:           !!(d.isInternal    || d.is_internal),
+    senderTier:           d.senderTier       || d.sender_tier    || 'EXTERNAL',
+    domainCategory:       d.domainCategory   || d.domain_category|| 'UNKNOWN',
+    domainSubcategory:    d.domainSubcategory|| d.domain_subcategory||'',
+    preliminaryScore:     d.preliminaryScore || d.preliminary_score|| 0,
+    draftReply:           d.draftReply       || d.draft_reply    || '',
+    draftQualityRating:   d.draftQualityRating|| d.draftQuality  || 'NEEDS_REVIEW',
+    draftFlaggedItems:    d.draftFlaggedItems || d.flagged_items  || [],
+    draftRequiresLegal:   !!(d.draftRequiresLegal||d.requires_legal_review),
+    draftHasPlaceholders: !!(d.draftHasPlaceholders||d.hasPlaceholders),
+    draftNeedsInputCount: d.draftNeedsInputCount || 0,
+    draftVerifyCount:     d.draftVerifyCount || 0,
+    draftWarnings:        d.draftWarnings    || [],
+    bodyText:             (d.bodyText        || d.body_text      || '').substring(0,3000),
+    gmailLabels:          d.gmailLabels      || d.gmail_labels   || [],
+    apiModel:             d.apiModel         || '',
+    apiCostUSD:           d.apiCostUSD       || 0,
+    priorityColor:        d.priorityColor    || null,
+    slaElapsedPct:        d.slaElapsedPct    || null,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// PUBLIC INGEST (for direct calls / backward compat)
+// ═══════════════════════════════════════════════════════════
+window.ingestEmail = function(data) {
+  const n = norm_email(data);
+  if (S.emails.find(e => e.messageId === n.messageId)) return;
+  S.emails.unshift(n);
+  renderList(); updateStats();
+  if (n.priorityClass === 'CRITICAL') toast('CRITICAL: ' + n.subject.substring(0,48), 'e');
+};
+window.ingestSlaAlert = function(data) {
+  S.slaBreaches.unshift(data);
+  updateStats(); renderSlaTable();
+};
+
+// ═══════════════════════════════════════════════════════════
+// SLA UTILS
+// ═══════════════════════════════════════════════════════════
+function slaInfo(email) {
+  if (!email.slaDeadline) return { pct: 0, label: '—', cls: '' };
+  const now      = Date.now();
+  const deadline = new Date(email.slaDeadline).getTime();
+  const received = new Date(email.receivedAt).getTime();
+  const window   = deadline - received;
+  const elapsed  = now - received;
+  const pct      = window > 0 ? elapsed / window : 1.2;
+  const msLeft   = deadline - now;
+  if (msLeft < 0) {
+    const h = (Math.abs(msLeft) / 3600000).toFixed(1);
+    return { pct, label: h + 'h OVERDUE', cls: 'breach' };
+  }
+  if (msLeft < 3600000) {
+    const m = Math.round(msLeft / 60000);
+    return { pct, label: m + 'm left', cls: 'warn' };
+  }
+  const h = (msLeft / 3600000).toFixed(1);
+  return { pct, label: h + 'h left', cls: pct > .8 ? 'warn' : '' };
+}
+
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const d = (Date.now() - new Date(iso)) / 1000;
+  if (d < 60)    return Math.round(d) + 's';
+  if (d < 3600)  return Math.round(d/60) + 'm';
+  if (d < 86400) return Math.round(d/3600) + 'h';
+  return Math.round(d/86400) + 'd';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER EMAIL LIST
+// ═══════════════════════════════════════════════════════════
+function getFiltered() {
+  let r = S.emails;
+  if (S.filter === 'PENDING') r = r.filter(e => !S.actions[e.messageId]);
+  else if (S.filter !== 'all') r = r.filter(e => e.priorityClass === S.filter);
+  if (S.search) {
+    const q = S.search.toLowerCase();
+    r = r.filter(e =>
+      e.subject.toLowerCase().includes(q) ||
+      e.senderName.toLowerCase().includes(q) ||
+      e.senderEmail.toLowerCase().includes(q) ||
+      e.senderDomain.toLowerCase().includes(q)
+    );
+  }
+  return r;
+}
+
+function renderList() {
+  const list = document.getElementById('emailList');
+  const filtered = getFiltered();
+  document.getElementById('qCount').textContent = filtered.length + ' email' + (filtered.length !== 1 ? 's' : '');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="qempty">No emails match.<br>Try changing filter or refreshing.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((e,i) => {
+    const pri = e.priorityClass;
+    const sla = slaInfo(e);
+    const sel = e.messageId === S.selected;
+    const acted = !!S.actions[e.messageId];
+    const priFill = sla.pct > 1 ? 'sla-breach' : sla.pct > .8 ? 'sla-warn' : 'sla-ok';
+
+    const badges = [
+      `<span class="b b-${pri.toLowerCase()}">${pri}</span>`,
+      e.intent && e.intent !== 'OTHER' ? `<span class="b b-muted">${e.intent.replace('_',' ')}</span>` : '',
+      e.isVIP ? '<span class="b b-vip">★ VIP</span>' : '',
+      e.legalFlag ? '<span class="b b-legal">legal</span>' : '',
+      e.regulatoryFlag ? '<span class="b b-reg">reg</span>' : '',
+      e.financialFlag ? '<span class="b b-fin">fin</span>' : '',
+      e.securityFlag ? '<span class="b b-sec">sec</span>' : '',
+      e.slaBucket && e.slaBucket !== 'NONE' ? `<span class="b b-info">${e.slaBucket.replace('_','-')}</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `<div class="eitem pri-${pri}${sel?' sel':''}${acted?' acted':''}"
+      onclick="selectEmail('${e.messageId}')" data-id="${e.messageId}" data-idx="${i}">
+      <div class="ei-row1">
+        <div class="ei-sender">${esc(e.senderName)}</div>
+        <div class="ei-time">${timeAgo(e.receivedAt)}</div>
+      </div>
+      <div class="ei-subject">${esc(e.subject)}</div>
+      <div class="ei-badges">${badges}</div>
+      ${sla.pct > 0 ? `<div class="sla-track"><div class="sla-fill ${priFill}" style="width:${Math.min(sla.pct*100,100).toFixed(1)}%"></div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER DETAIL
+// ═══════════════════════════════════════════════════════════
+function selectEmail(id) {
+  S.selected = id;
+  const e = S.emails.find(x => x.messageId === id);
+  if (!e) return;
+  renderList();
+  const empty = document.getElementById('detailEmpty');
+  const inner = document.getElementById('detailInner');
+  empty.style.display = 'none';
+  inner.style.display = 'flex';
+
+  // Header
+  const ptag = document.getElementById('dPriTag');
+  ptag.className = 'ptag ptag-' + e.priorityClass;
+  ptag.textContent = e.priorityClass;
+  document.getElementById('dIntent').textContent = e.intent.replace(/_/g,' ') + ' · ' + e.sentiment;
+  document.getElementById('dTime').textContent = new Date(e.receivedAt).toLocaleString();
+  document.getElementById('dSubject').textContent = e.subject;
+  document.getElementById('dFrom').textContent = e.senderName;
+  document.getElementById('dEmail').textContent = e.senderEmail;
+  document.getElementById('dDomain').textContent = e.senderDomain + (e.domainCategory !== 'UNKNOWN' ? ' · ' + e.domainCategory : '');
+
+  // Flags
+  const flags = [
+    e.isVIP ? '<span class="tag-pill b-vip">★ VIP</span>' : '',
+    e.legalFlag ? '<span class="tag-pill b-legal">⚖ Legal</span>' : '',
+    e.regulatoryFlag ? '<span class="tag-pill b-reg">⚡ Regulatory</span>' : '',
+    e.financialFlag ? '<span class="tag-pill b-fin">💰 Financial</span>' : '',
+    e.securityFlag ? '<span class="tag-pill b-sec">🔒 Security</span>' : '',
+    e.escalationRecommended ? `<span class="tag-pill b-reg">↑ Escalate → ${esc(e.escalateTo||'TBD')}</span>` : '',
+    e.draftHasPlaceholders ? '<span class="tag-pill b-muted">⚠ Placeholders</span>' : '',
+    e.isInternal ? '<span class="tag-pill b-muted">Internal</span>' : '',
+  ].filter(Boolean).join('');
+  document.getElementById('dFlags').innerHTML = flags;
+
+  // SLA
+  const si = slaInfo(e);
+  document.getElementById('dBucket').textContent = e.slaBucket;
+  const cdEl = document.getElementById('dCD');
+  cdEl.textContent = si.label;
+  cdEl.className = 'sla-cd ' + si.cls;
+  document.getElementById('dUrg').textContent = e.urgencyScore;
+  document.getElementById('dConf').textContent = Math.round(e.confidenceScore * 100) + '%';
+
+  // Body sections
+  let html = '';
+
+  // Summary
+  html += `<div class="sec">
+    <div class="sec-title">AI Executive Summary</div>
+    <div class="ai-box">${esc(e.emailSummary || 'No summary available.')}</div>
+    ${e.keyQuote ? `<div class="kquote">&ldquo;${esc(e.keyQuote)}&rdquo;</div>` : ''}
+  </div>`;
+
+  // Action items
+  if (e.actionItems && e.actionItems.length) {
+    const items = e.actionItems.slice(0,8).map(a => {
+      const text = typeof a === 'string' ? a : (a.action || String(a));
+      const deadline = typeof a === 'object' && a.deadline ? ` <span style="color:var(--critical);font-size:9px">[By: ${esc(a.deadline)}]</span>` : '';
+      return `<li>${esc(text)}${deadline}</li>`;
+    }).join('');
+    html += `<div class="sec"><div class="sec-title">Action Items</div><ul class="alist">${items}</ul></div>`;
+  }
+
+  // Deadlines
+  if (e.keyDeadlines && e.keyDeadlines.length) {
+    const dl = e.keyDeadlines.slice(0,5).map(d => {
+      const obj = typeof d === 'object' ? d : { description: d, date: null, is_hard: false };
+      return `<div class="dl-item">
+        <div class="dl-date${obj.is_hard ? ' hard' : ''}">${esc(obj.date || 'ASAP')}</div>
+        <div>${esc(obj.description || String(d))}</div>
+        ${obj.is_hard ? '<span class="b b-c" style="flex-shrink:0">HARD</span>' : ''}
+      </div>`;
+    }).join('');
+    html += `<div class="sec"><div class="sec-title">Key Deadlines</div>${dl}</div>`;
+  }
+
+  // Stakeholders
+  if (e.keyStakeholders && e.keyStakeholders.length) {
+    const sk = e.keyStakeholders.slice(0,6).map(s => {
+      const name = typeof s === 'string' ? s : (s.name || String(s));
+      const role = typeof s === 'object' ? (s.role || '') : '';
+      const org  = typeof s === 'object' ? (s.organization || '') : '';
+      const initials = name.split(/[\s,]+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+      return `<div class="sk-item">
+        <div class="sk-av">${esc(initials)}</div>
+        <div>
+          <span style="color:var(--text);font-weight:500">${esc(name)}</span>
+          ${role ? `<span style="color:var(--muted);font-size:10px"> · ${esc(role)}</span>` : ''}
+          ${org  ? `<span style="color:var(--muted);font-size:9px;font-family:var(--mono)"> @ ${esc(org)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    html += `<div class="sec"><div class="sec-title">Key Stakeholders</div>${sk}</div>`;
+  }
+
+  // Monetary / references
+  if ((e.monetaryAmounts && e.monetaryAmounts.length) || (e.referenceNumbers && e.referenceNumbers.length)) {
+    let extras = '';
+    if (e.monetaryAmounts && e.monetaryAmounts.length)
+      extras += `<div style="margin-bottom:5px"><span style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em">AMOUNTS</span> <span style="font-family:var(--mono);font-size:10px;color:var(--financial)">${e.monetaryAmounts.join('  ·  ')}</span></div>`;
+    if (e.referenceNumbers && e.referenceNumbers.length)
+      extras += `<div><span style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em">REFERENCES</span> <span style="font-family:var(--mono);font-size:10px;color:var(--accent)">${e.referenceNumbers.join('  ·  ')}</span></div>`;
+    html += `<div class="sec">${extras}</div>`;
+  }
+
+  // Classification signals
+  html += `<div class="sec">
+    <div class="sec-title">Classification Signals</div>
+    <div class="sig-grid">
+      <div class="sig-cell"><div class="sig-n">Prelim Score</div><div class="sig-v">${e.preliminaryScore}/100</div></div>
+      <div class="sig-cell"><div class="sig-n">Sender Tier</div><div class="sig-v">${(e.senderTier||'—').replace(/_/g,' ')}</div></div>
+      <div class="sig-cell"><div class="sig-n">Domain Cat.</div><div class="sig-v">${e.domainCategory||'—'}</div></div>
+      <div class="sig-cell"><div class="sig-n">AI Model</div><div class="sig-v" style="font-size:9px">${e.apiModel||'—'}</div></div>
+    </div>
+    <div class="reason-text">${esc(e.classificationReason)}</div>
+    <div style="margin-top:8px">
+      <div style="font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px">AI CONFIDENCE</div>
+      <div class="conf-track"><div class="conf-fill" style="width:${Math.round(e.confidenceScore*100)}%"></div></div>
+    </div>
+  </div>`;
+
+  // Email body
+  html += `<div class="sec">
+    <div class="sec-title">Email Body</div>
+    <div class="raw">${esc(e.bodyText || '(body not available)')}</div>
+  </div>`;
+
+  document.getElementById('detailBody').innerHTML = html;
+
+  // Render draft panel
+  renderDraft(e);
+  enableButtons(true);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER DRAFT
+// ═══════════════════════════════════════════════════════════
+function renderDraft(e) {
+  const hasDraft = e.draftReply && e.draftReply.length > 10;
+  const empty    = document.getElementById('draftEmpty');
+  const ta       = document.getElementById('draftTA');
+  const meta     = document.getElementById('draftMeta');
+  const badge    = document.getElementById('draftBadge');
+  const fbRow    = document.getElementById('fbRow');
+  const flagW    = document.getElementById('flagWarns');
+  const dwBox    = document.getElementById('draftWarns');
+
+  if (hasDraft) {
+    empty.style.display = 'none';
+    ta.style.display    = 'block';
+    ta.value = e.draftReply;
+    meta.style.display  = 'flex';
+    fbRow.style.display = 'block';
+
+    const wc = e.draftReply.split(/\s+/).filter(Boolean).length;
+    const ni = e.draftNeedsInputCount || (e.draftReply.match(/\[NEEDS INPUT/g)||[]).length;
+    const vc = e.draftVerifyCount    || (e.draftReply.match(/\[VERIFY/g)    ||[]).length;
+    const ww = (e.draftReply.match(/\[WARNING/g)||[]).length;
+
+    const qMap = { CONFIDENT:'b-l', PARTIAL:'b-m', NEEDS_REVIEW:'b-h', FALLBACK:'b-c' };
+    badge.innerHTML = `<span class="b ${qMap[e.draftQualityRating]||'b-m'}">${e.draftQualityRating||'UNKNOWN'}</span>`;
+
+    let metaHtml = `<span>${wc} words</span>`;
+    if (ni > 0) metaHtml += `<span class="dm-warn">⚠ ${ni} needs input</span>`;
+    if (vc > 0) metaHtml += `<span class="dm-warn">✓ ${vc} verify</span>`;
+    if (ww > 0) metaHtml += `<span style="color:var(--critical)">⛔ ${ww} warning${ww>1?'s':''}</span>`;
+    meta.innerHTML = metaHtml;
+
+    // Flag warnings
+    const warns = [];
+    if (e.draftRequiresLegal || e.legalFlag)
+      warns.push('<div class="fw fw-legal">⚖ Legal review required before sending</div>');
+    if (e.regulatoryFlag)
+      warns.push('<div class="fw fw-reg">⚡ Regulatory — senior sign-off required</div>');
+    if (e.financialFlag)
+      warns.push('<div class="fw fw-fin">💰 Verify all financial figures before sending</div>');
+    flagW.innerHTML = warns.join('');
+
+    // Draft warnings
+    const items = e.draftFlaggedItems || [];
+    if (items.length || e.draftWarnings?.length) {
+      dwBox.style.display = 'block';
+      const all = [...items, ...(e.draftWarnings||[])];
+      document.getElementById('draftWarnItems').innerHTML =
+        all.slice(0,8).map(i => '• ' + esc(typeof i === 'object' ? i.description : i)).join('<br>');
+    } else { dwBox.style.display = 'none'; }
+
+  } else {
+    empty.style.display = 'flex';
+    ta.style.display    = 'none';
+    meta.style.display  = 'none';
+    fbRow.style.display = 'none';
+    flagW.innerHTML     = '';
+    dwBox.style.display = 'none';
+    badge.textContent   = '';
+  }
+}
+
+function onDraftInput() {
+  const ta = document.getElementById('draftTA');
+  const wc = ta.value.split(/\s+/).filter(Boolean).length;
+  const meta = document.getElementById('draftMeta');
+  if (meta) {
+    // Update word count only
+    const parts = meta.innerHTML.split('<span>');
+    if (parts.length > 1) meta.innerHTML = '<span>' + wc + ' words</span>' + parts.slice(2).join('<span>');
+  }
+}
+
+function enableButtons(on) {
+  ['btnApprove','btnEdit','btnReject','btnSnooze','btnEscalate'].forEach(id => {
+    document.getElementById(id).disabled = !on;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════
+function toggleSnooze() {
+  const row = document.getElementById('snzRow');
+  row.style.display = row.style.display === 'none' ? 'block' : 'none';
+}
+
+async function doAction(action, snoozeMinutes) {
+  const e = S.emails.find(x => x.messageId === S.selected);
+  if (!e) { toast('No email selected', 'e'); return; }
+
+  const wurl = S.cfg.webhookUrl;
+  const editedReply = document.getElementById('draftTA').value;
+  const fbPri  = document.getElementById('fbPriority').value;
+  const fbNote = document.getElementById('fbNote').value;
+
+  const payload = {
+    action,
+    messageId:        e.messageId,
+    threadId:         e.threadId,
+    subject:          e.subject,
+    senderEmail:      e.senderEmail,
+    senderDomain:     e.senderDomain,
+    priorityClass:    e.priorityClass,
+    intent:           e.intent,
+    slaBucket:        e.slaBucket,
+    slaDeadline:      e.slaDeadline,
+    draftReply:       e.draftReply,
+    editedReply:      (action === 'EDIT_SEND' || action === 'APPROVE') ? editedReply : null,
+    correctedPriority:fbPri || null,
+    feedbackNote:     fbNote || null,
+    snoozeMinutes:    snoozeMinutes || null,
+    escalateTo:       e.escalateTo || null,
+    userId:           S.cfg.name || 'operator',
+    ts:               Date.now(),
+    // Learning Feedback Processor fields
+    emailSummary:     e.emailSummary,
+    actionItems:      e.actionItems,
+    keyDeadlines:     e.keyDeadlines,
+    draftQualityRating: e.draftQualityRating,
+    legalFlag:        e.legalFlag,
+    regulatoryFlag:   e.regulatoryFlag,
+    financialFlag:    e.financialFlag,
+    securityFlag:     e.securityFlag,
+    confidenceScore:  e.confidenceScore,
+    urgencyScore:     e.urgencyScore,
+    senderTier:       e.senderTier,
+    domainCategory:   e.domainCategory,
+    apiModel:         e.apiModel,
+    monetaryAmounts:  e.monetaryAmounts,
+    preliminaryScore: e.preliminaryScore,
+    orgName:          'PharmaOS',
+  };
+
+  // Optimistic update
+  S.actions[e.messageId] = action;
+  renderList();
+
+  // Set button loading
+  const btnMap = { APPROVE:'btnApprove', EDIT_SEND:'btnEdit', REJECT:'btnReject', SNOOZE:'btnSnooze', ESCALATE:'btnEscalate' };
+  const btn = document.getElementById(btnMap[action]);
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) btn.innerHTML = '<div class="spin"></div>';
+
+  if (!wurl) {
+    setTimeout(() => {
+      if (btn) btn.innerHTML = orig;
+      toast(`[Demo] ${action} logged — connect n8n to send for real`, 's');
+      document.getElementById('snzRow').style.display = 'none';
+    }, 600);
+    return;
+  }
+
+  try {
+    const r = await fetch(wurl, {
+      method: 'POST',
+      headers: {
+        'Content-Type':    'application/json',
+        'x-webhook-secret': S.cfg.secret || '',
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    const labels = {
+      APPROVE:'✓ Approved & queued to send',
+      EDIT_SEND:'✎ Edited reply sent',
+      REJECT:'✕ Draft rejected',
+      SNOOZE:`⏱ Snoozed ${snoozeMinutes}min`,
+      ESCALATE:'↑ Escalation sent to n8n'
+    };
+    if (r.ok) {
+      toast(labels[action] || action, 's');
+    } else {
+      toast('Webhook error: HTTP ' + r.status, 'e');
+      delete S.actions[e.messageId];
+      renderList();
+    }
+  } catch(err) {
+    toast('Network error: ' + err.message, 'e');
+    delete S.actions[e.messageId];
+    renderList();
+  } finally {
+    if (btn) btn.innerHTML = orig;
+    document.getElementById('snzRow').style.display = 'none';
+    document.getElementById('fbPriority').value = '';
+    document.getElementById('fbNote').value = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════
+function updateStats() {
+  const es = S.emails;
+  const n  = es.length;
+  const c  = es.filter(e => e.priorityClass === 'CRITICAL').length;
+  const h  = es.filter(e => e.priorityClass === 'HIGH').length;
+  const p  = es.filter(e => !S.actions[e.messageId]).length;
+  const br = S.slaBreaches.length + es.filter(e => e.slaBreach).length;
+  const leg= es.filter(e => e.legalFlag).length;
+  const ac = es.reduce((s,e) => s + (e.confidenceScore||.5), 0);
+  const conf= n ? Math.round(ac / n * 100) : null;
+  const acted = Object.values(S.actions).filter(a => ['APPROVE','EDIT_SEND'].includes(a)).length;
+  const draftEmails = es.filter(e => e.draftReply).length;
+  const dp  = draftEmails ? Math.round(acted / draftEmails * 100) : null;
+
+  g('sTotal').textContent = n;
+  g('sCrit').textContent  = c;
+  g('sHigh').textContent  = h;
+  g('sPend').textContent  = p;
+  g('sBreach').textContent= br;
+  g('sLegal').textContent = leg;
+  g('sConf').textContent  = conf !== null ? conf + '%' : '—';
+  g('sDraft').textContent = dp !== null ? dp + '%' : '—';
+
+  const bel = g('sBreachS');
+  bel.textContent = br > 0 ? br + ' active' : 'none active';
+  bel.className = 'stat-s ' + (br > 0 ? 'up' : 'dn');
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILTERS & VIEWS
+// ═══════════════════════════════════════════════════════════
+function setFilter(v, btn) {
+  S.filter = v;
+  document.querySelectorAll('.fc').forEach(b => {
+    b.className = 'fc';
+    if (b === btn) {
+      const cls = { all:'on-all', CRITICAL:'on-c', HIGH:'on-h', MEDIUM:'on-m', LOW:'on-l', PENDING:'on-all' };
+      b.className = 'fc ' + (cls[v] || 'on-all');
+    }
+  });
+  renderList();
+}
+
+function onSearch(v) {
+  S.search = v.trim();
+  renderList();
+}
+
+function switchView(view) {
+  S.view = view;
+  ['inbox','sla','analytics'].forEach(v => {
+    const tab = g('tab-' + v);
+    if (tab) tab.className = 'ttab' + (v === view ? ' active' : '');
+  });
+  g('inboxView').style.display   = (view === 'inbox')                 ? 'grid' : 'none';
+  g('analyticsView').className   = 'analytics' + (view !== 'inbox' ? ' on' : '');
+  if (view === 'analytics' || view === 'sla') renderAnalytics();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════════════════════
+function renderAnalytics() {
+  const es = S.emails;
+  const n  = es.length || 1;
+  const c  = es.filter(e => e.priorityClass === 'CRITICAL').length;
+  const h  = es.filter(e => e.priorityClass === 'HIGH').length;
+  const m  = es.filter(e => e.priorityClass === 'MEDIUM').length;
+  const l  = es.filter(e => e.priorityClass === 'LOW').length;
+  const ns = es.filter(e => e.priorityClass === 'NOISE').length;
+  const avgConf = Math.round(es.reduce((s,e) => s + (e.confidenceScore||.5), 0) / n * 100);
+  const acted   = Object.values(S.actions).filter(a => ['APPROVE','EDIT_SEND'].includes(a)).length;
+  const dp      = es.filter(e=>e.draftReply).length;
+  const draftPct= dp ? Math.round(acted / dp * 100) : 0;
+  const br      = S.slaBreaches.length + es.filter(e => e.slaBreach).length;
+  const slaPct  = n > 1 ? Math.round((1 - br / n) * 100) : 100;
+
+  g('ag').innerHTML = [
+    ['7-Day Total',          es.length,   'total processed',  'var(--text)'],
+    ['AI Confidence',        avgConf+'%', 'avg classification','var(--accent)'],
+    ['Draft Approval',       draftPct+'%','of drafts accepted','var(--low)'],
+    ['SLA Compliance',       slaPct+'%',  'on-time rate',      slaPct>=90?'var(--low)':'var(--critical)'],
+  ].map(([label, val, sub, col]) =>
+    `<div class="acard"><div class="acard-l">${label}</div><div class="acard-v" style="color:${col}">${val}</div><div class="acard-s">${sub}</div></div>`
+  ).join('');
+
+  // Priority chart
+  const pdata = [
+    ['CRITICAL', c, 'var(--critical)'],
+    ['HIGH',     h, 'var(--high)'],
+    ['MEDIUM',   m, 'var(--medium)'],
+    ['LOW',      l, 'var(--low)'],
+    ['NOISE',    ns,'var(--noise)'],
+  ];
+  const pmax = Math.max(...pdata.map(d => d[1]), 1);
+  g('priChart').innerHTML = pdata.map(([label, cnt, col]) =>
+    `<div class="brow"><div class="brow-l">${label}</div><div class="btrack"><div class="bfill" style="width:${Math.round(cnt/pmax*100)}%;background:${col}"></div></div><div class="bcount">${cnt}</div></div>`
+  ).join('');
+
+  // Domain chart
+  const domMap = {};
+  es.forEach(e => { const d = e.domainCategory||'UNKNOWN'; domMap[d] = (domMap[d]||0)+1; });
+  const domData = Object.entries(domMap).sort((a,b) => b[1]-a[1]).slice(0,7);
+  const domMax  = domData.length ? domData[0][1] : 1;
+  const domColors = { REGULATORY:'var(--regulatory)',LEGAL:'var(--legal)',FINANCIAL:'var(--financial)',CLIENT:'var(--accent)',CONSULTING:'var(--medium)',PARTNER:'var(--low)',INTERNAL:'var(--muted)',AUTOMATED:'var(--noise)',UNKNOWN:'var(--faint)' };
+  g('domChart').innerHTML = domData.map(([cat, cnt]) =>
+    `<div class="brow"><div class="brow-l">${cat}</div><div class="btrack"><div class="bfill" style="width:${Math.round(cnt/domMax*100)}%;background:${domColors[cat]||'var(--accent)'}"></div></div><div class="bcount">${cnt}</div></div>`
+  ).join('');
+
+  renderSlaTable();
+}
+
+function renderSlaTable() {
+  const tbody = g('slaTBody');
+  if (!S.slaBreaches.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:16px">No SLA breaches logged</td></tr>';
+    return;
+  }
+  const cols = { CRITICAL_OVERDUE:'var(--critical)', BREACH_RECENT:'var(--high)', WARNING_IMMINENT:'var(--medium)' };
+  tbody.innerHTML = S.slaBreaches.map(b => {
+    const lc = cols[b.alertLevel||b.alert_level] || 'var(--text)';
+    const pri = (b.priorityClass||b.priority_class||'medium').toLowerCase();
+    return `<tr>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.subject||b.messageId||'—')}</td>
+      <td style="font-family:var(--mono);font-size:9px">${esc(b.senderEmail||b.sender_email||'—')}</td>
+      <td><span class="b b-${pri}">${b.priorityClass||b.priority_class||'—'}</span></td>
+      <td style="font-family:var(--mono);font-size:9px">${b.slaBucket||b.sla_bucket||'—'}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:${lc}">${b.alertLevel||b.alert_level||'—'}</td>
+      <td style="color:var(--critical);font-family:var(--mono);font-size:9px">${typeof (b.hoursOverdue) === 'number' ? b.hoursOverdue.toFixed(1)+'h' : '—'}</td>
+      <td style="color:var(--muted);font-family:var(--mono);font-size:8px">${timeAgo(b.checkedAt||b.checked_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 'i') {
+  const c = g('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type==='s'?'s':type==='e'?'e':type==='w'?'w':'');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateX(32px)'; t.style.transition = '.25s';
+    setTimeout(() => t.remove(), 260);
+  }, type === 'e' ? 5000 : 3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'r' || e.key === 'R') { manualRefresh(); return; }
+  if (e.key === 'Escape') { closeConfig(); document.getElementById('snzRow').style.display='none'; return; }
+  const filtered = getFiltered();
+  const idx = filtered.findIndex(x => x.messageId === S.selected);
+  if (e.key === 'ArrowDown' && idx < filtered.length - 1) { selectEmail(filtered[idx+1].messageId); e.preventDefault(); }
+  if (e.key === 'ArrowUp'   && idx > 0)                   { selectEmail(filtered[idx-1].messageId); e.preventDefault(); }
+  if (e.key === 'a' && S.selected) doAction('APPROVE');
+  if (e.key === 'x' && S.selected) doAction('REJECT');
+  if (e.key === 'e' && S.selected) doAction('ESCALATE');
+});
+
+// ═══════════════════════════════════════════════════════════
+// COUNTDOWN UPDATER (every 30s)
+// ═══════════════════════════════════════════════════════════
+setInterval(() => {
+  const e = S.emails.find(x => x.messageId === S.selected);
+  if (!e) return;
+  const si = slaInfo(e);
+  const cd = g('dCD');
+  if (cd) { cd.textContent = si.label; cd.className = 'sla-cd ' + si.cls; }
+}, 30000);
+
+// ═══════════════════════════════════════════════════════════
+// HELPER
+// ═══════════════════════════════════════════════════════════
+function g(id) { return document.getElementById(id); }
+
+// ═══════════════════════════════════════════════════════════
+// DEMO DATA
+// ═══════════════════════════════════════════════════════════
+function loadDemo() {
+  const now = new Date();
+  const dl  = h => new Date(now.getTime() + h*3600000).toISOString();
+  const ago = m => new Date(now.getTime() - m*60000).toISOString();
+
+  [
+    { messageId:'d001', senderName:'Sarah Chen', senderEmail:'s.chen@sec.gov', senderDomain:'sec.gov',
+      subject:'Notice of Examination — Response Required Within 10 Business Days',
+      receivedAt:ago(4), priorityClass:'CRITICAL', urgencyScore:10, confidenceScore:.97,
+      slaBucket:'IMMEDIATE', slaDeadline:dl(2), intent:'ACTION_REQUIRED', sentiment:'FORMAL',
+      emailSummary:'The SEC has issued a formal notice of examination regarding Q3 trading activity. A comprehensive document production is required within 10 business days. Failure to respond may result in enforcement action.',
+      actionItems:['Produce all trade records for Q3 2025 by deadline','Engage outside legal counsel immediately','Designate document custodian and notify SEC'],
+      keyDeadlines:[{description:'Document production to SEC',date:'10 business days',is_hard:true},{description:'Outside counsel engagement',date:'24 hours',is_hard:true}],
+      keyStakeholders:[{name:'Sarah Chen',role:'Examiner',organization:'SEC Division of Enforcement'}],
+      financialFlag:true, legalFlag:true, regulatoryFlag:true, escalationRecommended:true, escalateTo:'CEO & General Counsel',
+      domainCategory:'REGULATORY', senderTier:'GOVERNMENT_OFFICIAL', preliminaryScore:100, isVIP:false,
+      classificationReason:'Government regulatory body (SEC) issuing formal examination notice with mandatory response deadline.',
+      keyQuote:'Failure to respond within the prescribed period may result in enforcement action.',
+      draftReply:'Dear Ms. Chen,\n\nThank you for your letter dated [VERIFY: date] regarding the Notice of Examination (Reference: [NEEDS INPUT: SEC reference number]).\n\nWe acknowledge receipt of this notice and confirm our full cooperation. We have engaged outside counsel [NEEDS INPUT: counsel name and firm] who will serve as our primary contact.\n\nOur designated examination coordinator is [NEEDS INPUT: name and title].\n\n[WARNING: REGULATORY CORRESPONDENCE — MUST BE REVIEWED BY REGULATORY COUNSEL BEFORE DISPATCH]\n\nRespectfully,\nAkshat Jain\nDirector | PharmaOS',
+      draftQualityRating:'PARTIAL', draftRequiresLegal:true, draftHasPlaceholders:true, draftNeedsInputCount:3, draftVerifyCount:1,
+      bodyText:'Dear Recipient,\n\nThis letter constitutes formal notice that the SEC Division of Enforcement has initiated an examination of trading activity in Case File #SEC-2025-8847.\n\nYou are required to produce the following within ten (10) business days:\n1. All trading records for Q3 2025\n2. All internal communications related to the referenced securities\n3. Compliance reports for the referenced period\n\nFailure to respond within the prescribed period may result in enforcement action.\n\nSarah Chen, Examiner\nSEC Division of Enforcement',
+      apiModel:'anthropic/claude-sonnet-4-5', apiCostUSD:.0042 },
+
+    { messageId:'d002', senderName:'James Whitfield', senderEmail:'j.whitfield@kirkland.com', senderDomain:'kirkland.com',
+      subject:'Notice of Claim — Whitfield Industrial Holdings v. PharmaOS — Without Prejudice',
+      receivedAt:ago(22), priorityClass:'CRITICAL', urgencyScore:10, confidenceScore:.95,
+      slaBucket:'IMMEDIATE', slaDeadline:dl(1.5), intent:'LEGAL_NOTICE', sentiment:'FORMAL',
+      emailSummary:'Kirkland & Ellis has served a formal Notice of Claim alleging breach of contract with damages claimed at USD 4.2M. Litigation hold is triggered. No substantive response — route to outside counsel immediately.',
+      actionItems:['Engage outside counsel immediately','Issue litigation hold to all relevant personnel','Do not contact Whitfield Industrial Holdings directly'],
+      keyDeadlines:[{description:'Formal response to Notice of Claim',date:'21 days per notice',is_hard:true},{description:'Litigation hold issuance',date:'Immediate',is_hard:true}],
+      keyStakeholders:[{name:'James Whitfield',role:'Partner',organization:'Kirkland & Ellis'}],
+      financialFlag:true, legalFlag:true, regulatoryFlag:false, escalationRecommended:true, escalateTo:'CEO, CFO & Outside Counsel',
+      domainCategory:'LEGAL', senderTier:'LEGAL_COUNSEL', preliminaryScore:98, isVIP:false,
+      classificationReason:'Formal Notice of Claim from Magic Circle law firm for USD 4.2M breach of contract.',
+      keyQuote:'USD 4,200,000 in damages arising from breach of the Q3 2025 supply agreement.',
+      monetaryAmounts:['USD 4,200,000'], referenceNumbers:['WIH-2025-NOC-001'],
+      draftReply:'Dear Mr. Whitfield,\n\nThank you for your letter dated [VERIFY: date] on behalf of Whitfield Industrial Holdings.\n\nWe acknowledge receipt of your Notice of Claim. This matter has been referred to our legal counsel who will be in contact with you directly.\n\nAll further correspondence should be directed to:\n[NEEDS INPUT: Outside counsel name and contact details]\n\n[WARNING: LEGAL NOTICE — THIS DRAFT MUST BE APPROVED BY AUTHORIZED OUTSIDE COUNSEL BEFORE SENDING]\n\nYours sincerely,\n[NEEDS INPUT: Authorized signatory]',
+      draftQualityRating:'NEEDS_REVIEW', draftRequiresLegal:true, draftHasPlaceholders:true, draftNeedsInputCount:2,
+      bodyText:'WITHOUT PREJUDICE\n\nWe act for Whitfield Industrial Holdings.\n\nWe write to give formal notice of our client\'s claim against your company arising from alleged breach of the Q3 2025 supply agreement dated June 1, 2025.\n\nOur client alleges failure to deliver 12,000 units of component SKU-449A by the agreed date, causing losses of USD 4,200,000.\n\nJames Whitfield, Partner\nKirkland & Ellis LLP',
+      apiModel:'anthropic/claude-sonnet-4-5', apiCostUSD:.0038 },
+
+    { messageId:'d003', senderName:'Marcus Rodriguez', senderEmail:'m.rodriguez@clientco.com', senderDomain:'clientco.com',
+      subject:'ESCALATION: Platform Performance — $180K Revenue Impact — Exec Response Required',
+      receivedAt:ago(65), priorityClass:'CRITICAL', urgencyScore:9, confidenceScore:.91,
+      slaBucket:'IMMEDIATE', slaDeadline:dl(1), intent:'ESCALATION', sentiment:'URGENT',
+      emailSummary:'ClientCo VP of Operations is escalating persistent platform latency causing $180K revenue impact this week — third consecutive SLA miss. Contract review threatened if not resolved by Friday. Immediate executive response required.',
+      actionItems:['Provide executive response within 2 hours','Schedule emergency call with ClientCo technical lead by EOD','Deliver root cause analysis and remediation by Friday'],
+      keyDeadlines:[{description:'Executive response',date:'Within 2 hours',is_hard:true},{description:'Remediation plan',date:'Friday EOD',is_hard:true}],
+      keyStakeholders:[{name:'Marcus Rodriguez',role:'VP Operations',organization:'ClientCo'},{name:'Jennifer Walsh',role:'CEO',organization:'ClientCo'}],
+      financialFlag:true, legalFlag:false, regulatoryFlag:false, escalationRecommended:true, escalateTo:'CTO & Account Executive',
+      domainCategory:'CLIENT', senderTier:'VP', preliminaryScore:88, isVIP:true,
+      classificationReason:'VIP client VP escalation with quantified revenue impact ($180K) and contract review threat.',
+      keyQuote:'We estimate the cumulative revenue impact this week at $180,000 and are now considering a formal contract review.',
+      monetaryAmounts:['$180,000'],
+      draftReply:'Hi Marcus,\n\nThank you for escalating this directly — you are right to do so, and I am personally taking ownership.\n\nI want to acknowledge three things immediately:\n1. This performance is unacceptable and does not meet our SLA commitments\n2. The revenue impact you have described is serious\n3. You deserve a concrete remediation plan — not further assurances\n\nOur CTO [NEEDS INPUT: CTO name] has been briefed and is leading a technical war room now.\n\nI would like to schedule a call with you and Jennifer today at [NEEDS INPUT: proposed time] to walk through our root cause findings.\n\nI will also address SLA credits proactively in our call.\n\nBest regards,\nAkshat Jain\nDirector | PharmaOS',
+      draftQualityRating:'PARTIAL', draftRequiresLegal:false, draftHasPlaceholders:true, draftNeedsInputCount:2,
+      bodyText:"Hi,\n\nI am formally escalating the ongoing platform performance issues for the past three weeks.\n\nWe have logged three consecutive SLA misses on dashboard response time (target: <200ms, actual: 800-1200ms).\n\nWe estimate the cumulative revenue impact this week at $180,000 and are now considering a formal contract review if we do not see resolution by Friday.\n\nMarcus Rodriguez, VP Operations\nClientCo",
+      apiModel:'anthropic/claude-sonnet-4-5', apiCostUSD:.0035 },
+
+    { messageId:'d004', senderName:'Priya Sharma', senderEmail:'p.sharma@goldmansachs.com', senderDomain:'goldmansachs.com',
+      subject:'Margin Call Notice — USD 2.8M — Settlement Required by 12:00 EST Today',
+      receivedAt:ago(35), priorityClass:'CRITICAL', urgencyScore:10, confidenceScore:.99,
+      slaBucket:'IMMEDIATE', slaDeadline:dl(.5), intent:'ACTION_REQUIRED', sentiment:'URGENT',
+      emailSummary:'Goldman Sachs Prime Brokerage has issued an intraday margin call for USD 2.8M against accounts #GS-44821 and #GS-44822. Settlement by 12:00 EST or forced liquidation. Immediate treasury action required.',
+      actionItems:['Authorize wire transfer of USD 2.8M to Goldman Sachs','Confirm settlement with treasury team by 11:00 EST'],
+      keyDeadlines:[{description:'Margin settlement',date:'12:00 EST TODAY',is_hard:true}],
+      monetaryAmounts:['USD 2,800,000'], referenceNumbers:['GS-44821','GS-44822'],
+      financialFlag:true, legalFlag:false, escalationRecommended:true, escalateTo:'CFO & Treasury',
+      domainCategory:'FINANCIAL', senderTier:'EXTERNAL', preliminaryScore:92,
+      classificationReason:'Goldman Sachs intraday margin call USD 2.8M with forced liquidation risk.',
+      keyQuote:'Failure to meet this margin call by 12:00 EST will result in forced position liquidation.',
+      draftReply:'Dear Priya,\n\nThank you for the margin call notice for accounts #GS-44821 and #GS-44822.\n\nWe acknowledge the USD 2,800,000 requirement and the 12:00 EST deadline.\n\n[NEEDS INPUT: Treasury authorization — confirm wire has been initiated]\n\n[WARNING: Verify ALL financial figures and wire details before sending. Obtain CFO authorization.]\n\nBest regards,\nAkshat Jain\nDirector | PharmaOS',
+      draftQualityRating:'NEEDS_REVIEW', draftRequiresLegal:false, draftHasPlaceholders:true, draftNeedsInputCount:1,
+      bodyText:'MARGIN CALL NOTICE\nAccounts: #GS-44821, #GS-44822\nAmount: USD 2,800,000\nDeadline: 12:00 EST TODAY\n\nFailure to meet this margin call by 12:00 EST will result in forced position liquidation.\n\nPriya Sharma, Prime Brokerage\nGoldman Sachs',
+      apiModel:'anthropic/claude-sonnet-4-5', apiCostUSD:.0031 },
+
+    { messageId:'d005', senderName:'David Park', senderEmail:'d.park@clientco.com', senderDomain:'clientco.com',
+      subject:'Contract Renewal — MSA 2026 — Draft for Review ($340K ARR)',
+      receivedAt:ago(180), priorityClass:'HIGH', urgencyScore:7, confidenceScore:.88,
+      slaBucket:'SAME_DAY', slaDeadline:dl(6), intent:'CONTRACT', sentiment:'NEUTRAL',
+      emailSummary:'ClientCo procurement has shared the 2026 MSA draft with a 12% increase ($340K ARR). Key changes include new SLA penalty clauses and updated GDPR data processing terms. Legal review required before any response.',
+      actionItems:['Route to legal team for MSA review','Review SLA penalty clause against operational capability','Respond with review timeline within today'],
+      keyDeadlines:[{description:'Initial response confirming review',date:'Same day',is_hard:false},{description:'Contract review',date:'2 weeks',is_hard:false}],
+      financialFlag:true, legalFlag:true, escalationRecommended:false,
+      domainCategory:'CLIENT', senderTier:'VP', preliminaryScore:72, isVIP:true,
+      classificationReason:'VIP client contract renewal with $340K ARR financial implications and new SLA penalty clause.',
+      keyQuote:'The revised schedule introduces SLA-linked penalty provisions of up to 15% of monthly fees.',
+      monetaryAmounts:['$340,000 ARR','$303,000 current ARR'],
+      draftReply:"Hi David,\n\nThank you for sharing the 2026 MSA draft.\n\nI'll route this to our legal and finance teams today. Given the SLA and data processing changes, we want to review carefully.\n\nI expect to come back to you with our initial comments by [NEEDS INPUT: specific date — suggest 5-7 working days]. Does that work for your timeline?\n\nBest regards,\nAkshat Jain\nDirector | PharmaOS",
+      draftQualityRating:'PARTIAL', draftRequiresLegal:true, draftHasPlaceholders:true, draftNeedsInputCount:1,
+      bodyText:'Hi,\n\nPlease find the draft MSA for 2026 renewal — a 12% increase on current ARR of $303,000, bringing the 2026 value to $340,000.\n\nKey changes:\n1. Section 4.2: SLA penalty provisions up to 15% monthly fee deductions\n2. Section 8: Updated GDPR Article 28 data processing terms\n3. Section 12: Auto-renewal changed to 12 months notice\n\nPlease review and revert by end of Q1.\n\nDavid Park, VP Procurement\nClientCo',
+      apiModel:'openai/gpt-4o', apiCostUSD:.0018 },
+
+    { messageId:'d006', senderName:'PagerDuty Monitor', senderEmail:'alerts@pagerduty.com', senderDomain:'pagerduty.com',
+      subject:'[RESOLVED] P1 Incident #INC-9948 — API Gateway — All Systems Normal',
+      receivedAt:ago(120), priorityClass:'LOW', urgencyScore:2, confidenceScore:.94,
+      slaBucket:'WEEKLY', intent:'FYI', sentiment:'POSITIVE',
+      emailSummary:'PagerDuty automated resolution for P1 incident #INC-9948. API Gateway latency resolved. All systems operating normally. No action required.',
+      actionItems:[], keyDeadlines:[], keyStakeholders:[],
+      financialFlag:false, legalFlag:false, regulatoryFlag:false, escalationRecommended:false,
+      domainCategory:'PARTNER', senderTier:'EXTERNAL', preliminaryScore:12,
+      classificationReason:'Automated resolution notification from monitoring system — informational, no action required.',
+      keyQuote:'P1 Incident RESOLVED — All Systems Normal',
+      draftReply:'', draftQualityRating:'NEEDS_REVIEW',
+      bodyText:'[RESOLVED] Incident #INC-9948 — P1 API Gateway Latency\nStatus: RESOLVED\nDuration: 23 minutes\nResolution: Automatic failover to secondary region\nAll systems operating within normal parameters.',
+      apiModel:'openai/gpt-4o-mini', apiCostUSD:.0003 },
+  ].forEach(e => window.ingestEmail(e));
+
+  // Demo SLA breach
+  window.ingestSlaAlert({ subject:'Notice of Examination — Response Required', senderEmail:'s.chen@sec.gov', priorityClass:'CRITICAL', slaBucket:'IMMEDIATE', hoursOverdue:2.3, alertLevel:'BREACH_RECENT', checkedAt:ago(5) });
+  toast('Demo data loaded — 6 emails ingested', 's');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+loadCfg();
+setupPolling();
+renderList();
+updateStats();
+
+if (!S.cfg.webhookUrl && !S.cfg.ingestUrl) {
+  setTimeout(() => toast('Click ⚙ Configure to connect n8n, or load demo data', 'w'), 900);
+} else if (S.cfg.ingestUrl) {
+  fetchEmails();
+}
+
+console.log('%c[Email Intelligence Hub v4.0]', 'color:#00c8f0;font-weight:bold;font-size:14px');
+console.log('Keyboard: ↑↓ navigate  ·  R refresh  ·  A approve  ·  X reject  ·  E escalate');
+console.log('API: window.ingestEmail(data)  ·  window.ingestSlaAlert(data)');
+</script>
+</body>
+</html>
