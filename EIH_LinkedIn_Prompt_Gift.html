@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gmail Automation Prompts — EIH Community Gift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0a0c10;--paper:#f5f2ec;--accent:#d4500a;--accent2:#1a3a5c;
+  --gold:#c8941a;--sage:#4a6741;--muted:#8a8278;--border:#ddd8ce;
+  --mono:'JetBrains Mono',monospace;--serif:'Instrument Serif',serif;
+  --display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--display);min-height:100vh;overflow-x:hidden}
+
+/* ── NOISE TEXTURE ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.6}
+
+/* ── HEADER ── */
+.masthead{padding:60px 40px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;border-bottom:1px solid var(--border)}
+.masthead::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:60px;height:2px;background:var(--accent)}
+
+.edition-tag{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:24px;display:flex;align-items:center;gap:10px}
+.edition-tag::before,.edition-tag::after{content:'';flex:1;height:1px;background:var(--border);max-width:60px}
+
+.headline{font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1.0;letter-spacing:-.03em;max-width:700px}
+.headline span{color:var(--accent);font-style:italic;font-family:var(--serif)}
+.sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:20px;letter-spacing:.08em;line-height:1.8}
+.author-line{display:flex;align-items:center;gap:12px;margin-top:28px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.author-info{text-align:left}
+.author-name{font-size:12px;font-weight:700;letter-spacing:.04em}
+.author-role{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em}
+
+/* ── INTRO ── */
+.intro{max-width:760px;margin:0 auto;padding:56px 40px 0}
+.intro-text{font-family:var(--serif);font-size:22px;line-height:1.65;color:var(--ink)}
+.intro-text strong{color:var(--accent);font-style:italic}
+.intro-note{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:20px;padding:14px 18px;border-left:2px solid var(--gold);background:rgba(200,148,26,.06);letter-spacing:.05em;line-height:1.7}
+
+/* ── CATEGORY HEADER ── */
+.cat-hdr{display:flex;align-items:center;gap:16px;margin:64px 40px 0;max-width:760px;margin-left:auto;margin-right:auto}
+.cat-num{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.2em;color:var(--muted)}
+.cat-title{font-size:22px;font-weight:800;letter-spacing:-.02em;flex:1}
+.cat-rule{flex:1;height:1px;background:var(--border);max-width:200px}
+.cat-badge{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid;border-radius:2px}
+.cat-badge.beginners{border-color:var(--sage);color:var(--sage)}
+.cat-badge.intermediate{border-color:var(--gold);color:var(--gold)}
+.cat-badge.advanced{border-color:var(--accent);color:var(--accent)}
+.cat-badge.enterprise{border-color:var(--accent2);color:var(--accent2)}
+
+/* ── PROMPT CARD ── */
+.cards{max-width:760px;margin:0 auto;padding:24px 40px 0}
+.card{background:#fff;border:1px solid var(--border);margin-bottom:16px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.08)}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.card.beginner::before{background:var(--sage)}
+.card.intermediate::before{background:var(--gold)}
+.card.advanced::before{background:var(--accent)}
+.card.enterprise::before{background:var(--accent2)}
+
+.card-inner{padding:24px 28px 24px 32px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card-meta{display:flex;align-items:center;gap:8px}
+.card-num{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.14em;color:var(--muted)}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:7px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;background:var(--paper);border:1px solid var(--border);color:var(--muted)}
+.copy-btn{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.copy-btn.copied{background:var(--sage);color:#fff;border-color:var(--sage)}
+
+.card-title{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+.card-desc{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em;line-height:1.6;margin-bottom:14px}
+
+.prompt-box{background:var(--paper);border:1px solid var(--border);padding:16px 18px;font-family:var(--mono);font-size:11px;line-height:1.75;color:var(--ink);white-space:pre-wrap;word-break:break-word;position:relative}
+.prompt-box .hl{color:var(--accent);font-weight:600}
+.prompt-box .hl2{color:var(--accent2);font-weight:600}
+.prompt-box .hl3{color:var(--sage);font-weight:600}
+
+.card-footer{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.cf-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.06em}
+.cf-dot{width:4px;height:4px;border-radius:50%}
+.cf-dot.green{background:var(--sage)} .cf-dot.amber{background:var(--gold)} .cf-dot.red{background:var(--accent)} .cf-dot.blue{background:var(--accent2)}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:16px;max-width:760px;margin:48px auto 0;padding:0 40px}
+.divider-line{flex:1;height:1px;background:var(--border)}
+.divider-mark{font-family:var(--serif);font-size:18px;color:var(--border)}
+
+/* ── FOOTER ── */
+.footer{max-width:760px;margin:64px auto 0;padding:40px 40px 60px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.footer-col-title{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.footer-col-text{font-family:var(--mono);font-size:10px;line-height:1.8;color:var(--muted)}
+.footer-col-text a{color:var(--accent);text-decoration:none}
+.sign{margin-top:48px;max-width:760px;padding:0 40px 80px;margin-left:auto;margin-right:auto;display:flex;align-items:center;justify-content:space-between;border-top:2px solid var(--ink);padding-top:20px}
+.sign-text{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.sign-mono{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="edition-tag">Community Edition &nbsp;·&nbsp; March 2026 &nbsp;·&nbsp; Vol. 1</div>
+  <h1 class="headline">The <span>Gmail Automation</span> Prompt Collection</h1>
+  <p class="sub">25 battle-tested prompts for building intelligent email pipelines with n8n + AI<br>From zero to enterprise-grade in one afternoon</p>
+  <div class="author-line">
+    <div class="av">AJ</div>
+    <div class="author-info">
+      <div class="author-name">AKSHAT JAIN</div>
+      <div class="author-role">PharmaOS · Email Intelligence Hub v4.0 Builder</div>
+    </div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="intro">
+  <p class="intro-text">Over the past weeks I built a full <strong>enterprise-grade Gmail intelligence system</strong> — AI classification, auto-drafting, SLA monitoring, approval dashboard, learning feedback loops. This prompt collection distils everything I learned into prompts you can use today.</p>
+  <div class="intro-note">HOW TO USE — Copy any prompt, paste into Claude or ChatGPT, replace [bracketed placeholders] with your specifics. Each prompt is self-contained and produces working n8n nodes, code, or architecture. Stack multiple prompts to build a complete system.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 1 — ARCHITECTURE & PLANNING
+══════════════════════════════════════════════════════════ -->
+<div class="cat-hdr">
+  <div class="cat-num">01</div>
+  <div class="cat-title">Architecture & Planning</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge beginners">Foundation</div>
+</div>
+<div class="cards">
+
+  <div class="card beginner">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 01</div><div class="card-tags"><span class="tag">n8n</span><span class="tag">architecture</span></div></div>
+          <div class="card-title">Design a complete Gmail automation pipeline</div>
+          <div class="card-desc">Generates a full end-to-end architecture for any industry or use case</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p01')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p01">Design a complete n8n Gmail automation pipeline for a <span class="hl">[PHARMA / LEGAL / FINANCE / SaaS]</span> company.
+
+The system must handle:
+- Incoming email classification by priority (CRITICAL / HIGH / MEDIUM / LOW / NOISE)
+- AI-powered draft reply generation
+- Human approval before sending
+- SLA monitoring with alerts
+- Learning from user feedback
+
+Output:
+1. A node-by-node pipeline architecture with node names, types, and connections
+2. The 5 most critical design decisions and why
+3. What data each node passes to the next
+4. Which nodes need error handling and why
+5. Estimated processing time per email end-to-end
+
+Industry context: <span class="hl2">[describe your email types and volumes]</span>
+Tech stack: n8n + OpenRouter AI + PostgreSQL + Gmail API</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot green"></div>Beginner friendly</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>~30 min to implement</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Full architecture output</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card beginner">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 02</div><div class="card-tags"><span class="tag">postgresql</span><span class="tag">schema</span></div></div>
+          <div class="card-title">Generate the PostgreSQL schema for email intelligence</div>
+          <div class="card-desc">Complete database schema with all tables, indexes, and relationships</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p02')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p02">Generate a production-grade PostgreSQL schema for a Gmail intelligence system.
+
+Requirements:
+- Store all incoming emails with full classification metadata
+- Track AI draft replies and approval status (PENDING / APPROVED / REJECTED / SENT)
+- SLA breach logging with alert levels
+- User action audit trail (approve, reject, snooze, escalate)
+- AI learning examples from user corrections
+- Daily analytics snapshots
+
+For each table provide:
+1. Full CREATE TABLE statement with proper data types
+2. All indexes needed for the dashboard queries
+3. Any useful views for reporting
+4. Trigger functions that auto-update derived fields
+
+Naming convention: schema <span class="hl">eih</span>, snake_case columns.
+Include: partitioning strategy for the emails table (monthly by received_at)
+Include: enum types for: priority_class, processing_status, draft_status</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot green"></div>Beginner friendly</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Copy-paste ready SQL</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Production-grade</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 2 — EMAIL PARSING & CLASSIFICATION
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">02</div>
+  <div class="cat-title">Parsing & Classification</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge intermediate">Core AI</div>
+</div>
+<div class="cards">
+
+  <div class="card intermediate">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 03</div><div class="card-tags"><span class="tag">parse</span><span class="tag">normalization</span></div></div>
+          <div class="card-title">Gmail Trigger parse and normalize node</div>
+          <div class="card-desc">Extracts every field from Gmail's raw format into clean structured data</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p03')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p03">Write an n8n Code node (JavaScript) that parses Gmail Trigger output into a clean, normalized email object.
+
+The Gmail Trigger can output headers in 3 formats:
+- Top-level keys (From, Subject, Date)
+- A headers object { From: "...", Subject: "..." }  
+- A payload.headers array [{ name: "From", value: "..." }]
+
+The Code node must extract and normalize:
+- messageId (from email.id)
+- threadId (from email.threadId)
+- senderName, senderEmail, senderDomain (parsed from From header)
+- subject, toRaw, ccRaw, bccRaw
+- receivedAt (parsed from Date header to ISO 8601)
+- bodyText (decoded from base64 payload parts, stripped of HTML)
+- hasAttachment, attachmentNames, attachmentTypes
+- isInternal (if sender domain matches <span class="hl">[YOUR_DOMAIN]</span>)
+- isLikelyNoise (automated senders, newsletters, receipts)
+- wordCount, language detection (basic)
+
+Requirements:
+- Handle ALL three header formats with fallback chains
+- Never throw — every field has a safe fallback value
+- Output a single flat JSON object with camelCase keys
+- Include an audit log array of every extraction decision made</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot amber"></div>Intermediate</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Copy-paste node code</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Handles all Gmail formats</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card intermediate">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 04</div><div class="card-tags"><span class="tag">AI prompt</span><span class="tag">classification</span></div></div>
+          <div class="card-title">AI email classification system prompt</div>
+          <div class="card-desc">The master prompt that instructs an AI to classify any email with full intelligence</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p04')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p04">Write a complete AI system prompt for classifying business emails.
+
+The prompt must instruct the AI to output a valid JSON object with:
+- priorityClass: CRITICAL / HIGH / MEDIUM / LOW / NOISE
+- urgencyScore: 1-10
+- confidenceScore: 0.0-1.0
+- slaBucket: IMMEDIATE / SAME_DAY / NEXT_DAY / WEEKLY / NONE
+- intent: ACTION_REQUIRED / ESCALATION / LEGAL_NOTICE / COMPLAINT / APPROVAL / MEETING / CONTRACT / PAYMENT / AUDIT / FYI / INTRODUCTION / OTHER
+- sentiment: URGENT / THREATENING / FORMAL / NEUTRAL / POSITIVE
+- emailSummary: 2-3 sentence executive summary
+- keyQuote: the most important sentence verbatim
+- actionItems: array of specific actions with deadlines and owners
+- keyDeadlines: array with date, description, is_hard boolean
+- financialFlag, legalFlag, regulatoryFlag, securityFlag: booleans
+- escalationRecommended, escalateTo: for routing decisions
+- shouldDraft: whether an AI reply draft is warranted
+- classificationReason: explanation of the priority decision
+
+Industry context: <span class="hl">[PHARMA / FINANCE / LEGAL / SaaS / MANUFACTURING]</span>
+
+Include:
+- 5 hard override rules (e.g. SEC/FDA = always CRITICAL)
+- Anti-hallucination rules (no fabricated names or dates)
+- 3 few-shot examples relevant to the industry
+- Instructions for the JSON output format</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot amber"></div>Intermediate</div>
+        <div class="cf-item"><div class="cf-dot red"></div>Core of the system</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>25+ output fields</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card intermediate">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 05</div><div class="card-tags"><span class="tag">json</span><span class="tag">error handling</span></div></div>
+          <div class="card-title">Robust AI response parser with 4-strategy JSON extraction</div>
+          <div class="card-desc">Never fails on malformed AI output — repairs and extracts JSON with fallbacks</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p05')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p05">Write an n8n Code node that parses AI API responses from OpenRouter / OpenAI / Anthropic.
+
+The parser must handle:
+1. Provider-aware text extraction (OpenAI choices[], Anthropic content[], Gemini candidates[])
+2. 4-strategy JSON extraction:
+   - Strategy 1: Strip markdown fences, direct JSON.parse
+   - Strategy 2: Extract outermost { } brackets
+   - Strategy 3: Find largest JSON block via regex
+   - Strategy 4: Repair common defects (trailing commas, single quotes, Python True/False/None)
+3. Field validation and type coercion for every expected field
+4. Fallback values for every field if AI omits them
+5. Enum validation (reject invalid priority classes, intents, etc.)
+6. Token counting and cost calculation from usage object
+7. Rate limit header reading (x-ratelimit-remaining etc.)
+
+Output must include:
+- All parsed fields at top level
+- parseStrategy (which strategy succeeded)
+- wasRepaired boolean
+- coercionLog array of every type conversion made
+- overrideLog array of any hard rule applications
+- overallQuality: CLEAN / REPAIRED / DEGRADED / FAILED</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Critical reliability node</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Handles all AI providers</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Zero pipeline crashes</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 3 — AI DRAFT GENERATION
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">03</div>
+  <div class="cat-title">AI Draft Generation</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge intermediate">AI Writing</div>
+</div>
+<div class="cards">
+
+  <div class="card intermediate">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 06</div><div class="card-tags"><span class="tag">voice</span><span class="tag">tone</span></div></div>
+          <div class="card-title">Executive voice profile reply prompt generator</div>
+          <div class="card-desc">Writes replies that sound exactly like you — matched to sender tier and context</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p06')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p06">Write an AI system prompt that generates executive email replies matching a specific voice and register.
+
+The prompt must adapt to:
+- Sender tier: C-Suite / VP / Director / Manager / Government Official / Legal Counsel / External
+- Formality: FORMAL / STANDARD / WARM (selected based on domain, sentiment, relationship)
+- Intent: 12 intent types (escalation, legal notice, action required, complaint, etc.)
+- Domain: REGULATORY / LEGAL / FINANCIAL / CLIENT / INTERNAL / UNKNOWN
+
+For each combination define:
+- Exact salutation format
+- Body cadence (number of paragraphs, sentence style)
+- Closing and signature
+- What to include vs avoid
+
+The generated reply must:
+- Use [NEEDS INPUT: description] for missing information
+- Use [VERIFY: description] for figures to confirm
+- Use [WARNING: description] for critical review requirements
+- Never fabricate names, amounts, or reference numbers
+- Never use: "I hope this email finds you well", "please do not hesitate", "going forward"
+
+Operator profile: <span class="hl">[YOUR NAME]</span>, <span class="hl">[YOUR TITLE]</span>, <span class="hl">[YOUR ORG]</span>
+Output: valid JSON with draft_reply, quality_rating, flagged_items, key_commitments</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot amber"></div>Intermediate</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>24 voice combinations</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Sounds like you</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card intermediate">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 07</div><div class="card-tags"><span class="tag">legal</span><span class="tag">compliance</span></div></div>
+          <div class="card-title">Legal and regulatory safe draft checker</div>
+          <div class="card-desc">Validates any AI draft for legal/regulatory compliance before it reaches approval</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p07')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p07">Write an n8n Code node that performs compliance validation on AI-generated email drafts.
+
+The validator must check:
+
+Legal flags:
+- Does the draft contain any admission of liability or fault?
+- Does it deny specific allegations? (also a legal position)
+- Does it commit to timelines or remedies without authorization?
+- Are substantive legal positions present when only acknowledgment was required?
+
+Regulatory flags:
+- Does the draft acknowledge a regulatory notice without routing to counsel?
+- Does it minimize or dispute regulatory findings without sign-off?
+- Is the mandatory "[WARNING: REGULATORY COUNSEL REVIEW]" block present?
+
+Financial flags:
+- Are specific amounts mentioned without [VERIFY:] tags?
+- Are payment commitments made without CFO authorization language?
+
+Draft quality:
+- Count [NEEDS INPUT:] placeholders
+- Count [VERIFY:] placeholders  
+- Count [WARNING:] blocks
+- Check structural completeness (salutation, body, closing, signature)
+
+Output:
+- complianceIssues: array of specific problems found
+- draftStatus: READY / NEEDS_INPUT / LEGAL_REVIEW / NEEDS_REWORK / BLOCKED
+- qualityScore: 0-100
+- canAutoSend: boolean (true only if score > 80 and no compliance issues)</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Risk management</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Pre-send safety gate</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Compliance-grade</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 4 — PIPELINE INFRASTRUCTURE
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">04</div>
+  <div class="cat-title">Pipeline Infrastructure</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge advanced">Advanced</div>
+</div>
+<div class="cards">
+
+  <div class="card advanced">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 08</div><div class="card-tags"><span class="tag">retry</span><span class="tag">error handling</span></div></div>
+          <div class="card-title">OpenRouter API error handler with exponential backoff</div>
+          <div class="card-desc">Classifies API failures and implements smart retry logic for 7 error types</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p08')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p08">Write an n8n Code node for handling OpenRouter API errors with intelligent retry logic.
+
+Error types to handle:
+- 401/403: AUTH_FAILURE — stop immediately, alert admin, no retry
+- 404: NOT_FOUND — stop, log, no retry
+- 409: DUPLICATE_KEY — stop, already delivered, success
+- 413: PAYLOAD_TOO_LARGE — truncate and retry once
+- 422: INVALID_PAYLOAD — stop, log payload issue, no retry
+- 429: RATE_LIMITED — retry after Retry-After header value (or 30s)
+- 5xx: SERVER_ERROR — retry with exponential backoff
+- ECONNREFUSED/ENOTFOUND: UNREACHABLE — retry with 8s base delay
+- 0 (timeout): TIMEOUT — retry with longer timeout
+
+Retry strategy:
+- Max 3 retries with exponential backoff: 2s → 4s → 8s → 16s (capped at 32s)
+- Read Retry-After header for 429 responses
+- Fallback model chain: Claude Sonnet → GPT-4o → Gemini Pro → GPT-4o-mini
+- Log each retry attempt with errorType, retryAttempt, delayMs
+
+Output: shouldRetry boolean, retryDelay, errorType, fallbackModel, retryAttempt</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Production reliability</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>7 error classifications</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Model fallback chain</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card advanced">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 09</div><div class="card-tags"><span class="tag">sla</span><span class="tag">monitoring</span></div></div>
+          <div class="card-title">SLA breach processor with business hours awareness</div>
+          <div class="card-desc">Monitors email SLAs every 15 minutes and routes alerts by breach severity</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p09')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p09">Write an n8n Code node that processes SLA breach data from a PostgreSQL query.
+
+The node receives an array of emails near or past their SLA deadline.
+
+For each email compute:
+- hoursRemaining (negative = already breached)
+- hoursOverdue (how long past deadline)
+- pctElapsed (0-100% of SLA window consumed)
+- isBreach, isWarning (>80% elapsed), isCriticalOverdue (>4h overdue)
+
+Classify alert level:
+- WARNING_IMMINENT: >80% elapsed, not yet breached
+- BREACH_RECENT: past deadline
+- CRITICAL_OVERDUE: breached by more than 4 hours
+
+Business hours logic:
+- Only escalate BREACH_RECENT during business hours (8 AM - 8 PM)
+- Always escalate CRITICAL_OVERDUE regardless of time
+- Only escalate CRITICAL and HIGH priority emails
+
+For each alert build:
+- Slack message with ASCII progress bar showing elapsed % (real newlines, not .join)
+- Gmail subject and body
+- PostgreSQL upsert payload for eih_sla_breaches table
+
+Output: one item per actionable alert plus a batch summary item at index 0
+Include routing flags: sendSlack, sendGmail, sendEscalation per alert</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Advanced</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Business hours logic</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Multi-channel alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card advanced">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 10</div><div class="card-tags"><span class="tag">dashboard</span><span class="tag">push</span></div></div>
+          <div class="card-title">HTTP push to approval dashboard with idempotency</div>
+          <div class="card-desc">Pushes classified emails to a dashboard with deduplication, retry logic, and error classification</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p10')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p10">Write an n8n Code node (Build Push Payload) that prepares a dashboard push request.
+
+The node must:
+
+1. Generate an idempotency key (pushKey) from messageId + timestamp
+   — This prevents duplicate dashboard entries on retry
+
+2. Compute dashboard-ready fields:
+   - slaElapsedPct: percentage of SLA window consumed (computed here, not in dashboard JS)
+   - priorityColor and priorityBg: hex colors per priority class
+   - riskFlags: flat string array ['LEGAL', 'REGULATORY', 'FINANCIAL'] from boolean fields
+   - draftQualityBadge: { label, color } object for dashboard badge rendering
+   - apiCostUSD: sum of classification cost + draft cost
+
+3. Truncate bodyText to 3000 chars (dashboard renders a preview, not full body)
+
+4. Skip push if dashboard URL is blank (return _skipPush: true)
+
+5. Include retry config: maxRetries: 3, baseDelayMs: 2000, backoffExp: 2
+
+Then write the error handler Code node that:
+- Classifies HTTP failures into 7 types (AUTH, DUPLICATE_KEY, RATE_LIMITED, etc.)
+- Returns shouldRetry boolean and retryDelay in ms
+- Treats 409 as success (already delivered) not as error
+
+Hardcode the dashboard URL and secret — no environment variables.</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Advanced</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Zero duplicate entries</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Production resilience</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 5 — DASHBOARD & SERVER
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">05</div>
+  <div class="cat-title">Dashboard & Server</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge advanced">Full Stack</div>
+</div>
+<div class="cards">
+
+  <div class="card advanced">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 11</div><div class="card-tags"><span class="tag">express</span><span class="tag">server</span></div></div>
+          <div class="card-title">Express.js dashboard server with PostgreSQL</div>
+          <div class="card-desc">Full server with CORS, auth, deduplication, proxy, and health monitoring</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p11')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p11">Write a production-grade Express.js server (server.js) for a Gmail intelligence dashboard.
+
+The server must:
+
+Routes:
+- GET / → serve dashboard HTML file
+- POST /api/emails/pending → receive pushes from n8n (with x-webhook-secret auth)
+- GET /api/emails/pending → return emails for dashboard polling (with filter/pagination support)
+- POST /api/emails/action → log user actions and proxy to n8n webhook
+- GET /health → database connectivity check + uptime + memory
+- GET /api/stats → email counts by priority, domain, status
+- POST /api/clear → wipe in-memory store (dev/test)
+
+Security:
+- Constant-time secret comparison (crypto.timingSafeEqual) — prevents timing attacks
+- CORS headers for browser dashboard access
+- Request logging with response time
+
+In-memory store:
+- Deduplicate by pushKey — return HTTP 200 for duplicates (not 409, to prevent n8n retry loops)
+- Cap at 500 emails max
+- Sort by priority then time
+
+Database:
+- PostgreSQL connection pool with error handling
+- Non-blocking DB writes (log actions without blocking the response)
+- Connection: host=<span class="hl">[YOUR_DOCKER_SERVICE]</span>, db=<span class="hl">[DB_NAME]</span>, user=<span class="hl">[USER]</span>
+
+Listen on host: 0.0.0.0 (not localhost — fixes IPv6 ECONNREFUSED issues in Docker)</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Advanced</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Docker-ready</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Production security</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card advanced">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 12</div><div class="card-tags"><span class="tag">dashboard</span><span class="tag">HTML</span></div></div>
+          <div class="card-title">Single-file approval dashboard</div>
+          <div class="card-desc">Fully operational dark-mode dashboard with keyboard shortcuts, analytics, and live polling</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p12')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p12">Build a single-file HTML email approval dashboard for a Gmail intelligence pipeline.
+
+Design: dark mode, monospace accent font, terminal-inspired aesthetic.
+
+Left panel — Email Queue:
+- List of emails sorted by priority then time
+- Priority badge, sender, subject, SLA progress bar
+- Search box filtering by subject/sender
+- Filter chips: All / Critical / High / Medium / Low / Pending
+
+Center panel — Email Detail:
+- Priority tag, intent, sentiment, received time
+- Subject, sender, domain, risk flag badges
+- SLA countdown (auto-updating every 30s)
+- AI executive summary and key quote
+- Action items list with deadlines
+- Key stakeholders with initials avatar
+- Monetary amounts and reference numbers
+- AI confidence bar, classification reason
+- Raw email body
+
+Right panel — Reply Draft:
+- Editable textarea with draft text
+- Word count, placeholder count ([NEEDS INPUT], [VERIFY])
+- Legal / regulatory / financial warning banners
+- Feedback selector for AI learning
+- Snooze options (1h / 4h / 24h)
+- Action buttons: Approve & Send / Send Edited / Reject / Snooze / Escalate
+
+Features:
+- Auto-polls GET /api/emails/pending every 30 seconds
+- Keyboard shortcuts: ↑↓ navigate, A approve, X reject, E escalate, R refresh
+- Optimistic updates (acts immediately, rolls back on error)
+- Toast notifications for every action
+- Analytics tab with priority bar chart and domain distribution
+- Config modal: Ingest URL, Webhook URL, Secret, Operator Name, Refresh interval</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot red"></div>Full stack</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Zero dependencies</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>1500 lines, complete</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 6 — LEARNING & ANALYTICS
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">06</div>
+  <div class="cat-title">Learning & Analytics</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge enterprise">Enterprise</div>
+</div>
+<div class="cards">
+
+  <div class="card enterprise">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 13</div><div class="card-tags"><span class="tag">feedback</span><span class="tag">learning</span></div></div>
+          <div class="card-title">Learning feedback processor</div>
+          <div class="card-desc">Converts every user approval/rejection into structured AI training signals</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p13')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p13">Write an n8n Code node that converts user email actions into structured AI learning signals.
+
+For each of the 5 action types, extract:
+- APPROVE → positive signal, classification confirmed, draft approved
+- EDIT_SEND → corrective signal, run Levenshtein edit distance on original vs edited draft
+- REJECT → negative signal, parse rejection reason to determine: wrong priority / bad draft / noise misclassification
+- SNOOZE → deferral signal, timing issue not classification issue
+- ESCALATE → classification under-rated, infer corrected priority
+
+Draft analysis for EDIT_SEND:
+- Compute character edit distance (capped at 2000 chars to avoid O(n²))
+- Word-level diff: words added vs removed
+- Identify which sections changed: salutation / opening / body / closing / signature
+- Classify edit type: NO_EDIT / MINOR_FORMATTING / SALUTATION_CHANGED / BODY_SUBSTANTIALLY_REWRITTEN
+
+Learning example quality score (0-100):
+- High-confidence wrong classification: +30 points
+- User correction of priority: +20 points
+- Explained rejection reason: +10 points
+- Substantive draft edit: +10 points
+
+Output:
+- shouldStoreLearning boolean (only store high-value signals)
+- learningExample: 30-field object ready for PostgreSQL INSERT
+- calibrationSignal: CORRECT / OVER_RATED / UNDER_RATED
+- promptRecommendations: specific actionable prompt tuning suggestions</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot blue"></div>Enterprise tier</div>
+        <div class="cf-item"><div class="cf-dot red"></div>System improves over time</div>
+        <div class="cf-item"><div class="cf-dot green"></div>Closes the learning loop</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card enterprise">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 14</div><div class="card-tags"><span class="tag">analytics</span><span class="tag">report</span></div></div>
+          <div class="card-title">7-day analytics report builder</div>
+          <div class="card-desc">Generates a rich HTML digest + Slack summary from PostgreSQL daily stats</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p14')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p14">Write an n8n Code node that builds a 7-day analytics report from PostgreSQL daily stats rows.
+
+Input: array of daily rows with counts by priority, domain, SLA status, draft performance.
+
+Compute:
+- 7-day aggregates: total emails, critical count, noise filtered %, SLA compliance rate
+- Draft approval rate, draft rejection rate
+- AI confidence average, low confidence count
+- Half-window trend detection: compare first 3 days vs last 4 days for volume, SLA, draft quality
+- Trend direction: UP / DOWN / STABLE with % delta
+
+Anomaly detection (flag these):
+- Today's critical count > daily normal threshold
+- SLA compliance < 90% target
+- Draft approval rate < 70% target
+- Critical volume trending up > 20% week-over-week
+- AI confidence average < 80%
+
+Build 4 outputs:
+1. HTML email digest with: stat cards, 7-day volume table, performance metrics table, domain breakdown, draft performance, anomaly alerts, recommendations, dashboard link button
+2. Slack message with real newlines (not .join — causes literal \n in Slack)
+3. Plain text summary
+4. JSON snapshot for PostgreSQL analytics_snapshots table upsert
+
+Recommendations engine: for each anomaly, generate a specific actionable suggestion (not generic advice)</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot blue"></div>Enterprise</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>4 output formats</div>
+        <div class="cf-item"><div class="cf-dot red"></div>Anomaly detection</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CATEGORY 7 — BONUS PROMPTS
+══════════════════════════════════════════════════════════ -->
+<div class="divider"><div class="divider-line"></div><div class="divider-mark">✦</div><div class="divider-line"></div></div>
+<div class="cat-hdr">
+  <div class="cat-num">07</div>
+  <div class="cat-title">Bonus Prompts</div>
+  <div class="cat-rule"></div>
+  <div class="cat-badge beginners">Quick Wins</div>
+</div>
+<div class="cards">
+
+  <div class="card beginner">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 15</div><div class="card-tags"><span class="tag">debugging</span><span class="tag">diagnosis</span></div></div>
+          <div class="card-title">Debug any n8n node with one prompt</div>
+          <div class="card-desc">Paste any n8n error and get an exact fix in 60 seconds</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p15')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p15">I am building an n8n Gmail automation pipeline and getting this error:
+
+ERROR: <span class="hl">[paste full error message here]</span>
+
+Node type: <span class="hl">[Gmail / HTTP Request / PostgreSQL / Code / etc.]</span>
+Node name: <span class="hl">[exact node name in workflow]</span>
+Node position in pipeline: <span class="hl">[what comes before and after]</span>
+
+Input data this node receives:
+<span class="hl">[paste the input JSON from n8n execution panel]</span>
+
+What I configured in the node:
+<span class="hl">[describe the field values you set]</span>
+
+Diagnose:
+1. The exact root cause of this error
+2. Whether it is a configuration issue, data issue, or API issue
+3. The precise fix (exact field values, expressions, or code changes)
+4. How to prevent this error from recurring
+5. What to check in the upstream node if the fix does not work</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot green"></div>Instant diagnosis</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Works for any error</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>60-second fix</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card beginner">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 16</div><div class="card-tags"><span class="tag">slack</span><span class="tag">notifications</span></div></div>
+          <div class="card-title">Build any Slack alert message</div>
+          <div class="card-desc">Generate perfect Slack messages using n8n Slack node (not HTTP) with real newlines</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p16')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p16">Write an n8n Code node that builds a Slack message for the following alert type:
+
+Alert type: <span class="hl">[SLA breach / critical email / escalation / daily report / error alert]</span>
+
+Available data fields: <span class="hl">[paste your node's output JSON keys]</span>
+
+Requirements:
+- Build the message using string concatenation with += and real \n characters
+- DO NOT use array.join('\n') — it produces literal \n in Slack
+- Use Slack mrkdwn formatting: *bold*, _italic_, `code`, >quote
+- Use Slack emoji: :red_circle: :warning: :white_check_mark: :rotating_light:
+- Include: header line, key data fields as label: value pairs, a status section, footer with timestamp
+- All conditional sections (only show if data exists) must use ternary or if blocks
+- The final message must go into a field called slackMessage
+
+Then show the n8n Slack node configuration:
+- Resource: Message
+- Operation: Post
+- Channel: <span class="hl">[#your-channel]</span>
+- Message Text field: ={{ $json.slackMessage }}
+- On Error: Continue (Slack failure must never stop the pipeline)</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot green"></div>Common mistake avoided</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Real newlines in Slack</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>Any alert type</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card beginner">
+    <div class="card-inner">
+      <div class="card-top">
+        <div>
+          <div class="card-meta"><div class="card-num">PROMPT 17</div><div class="card-tags"><span class="tag">n8n</span><span class="tag">expressions</span></div></div>
+          <div class="card-title">Convert any Code node to n8n expressions</div>
+          <div class="card-desc">Simplify complex Code nodes into clean n8n expression fields</div>
+        </div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p17')">Copy</button>
+      </div>
+      <div class="prompt-box" id="p17">I have this JavaScript logic in an n8n Code node:
+
+<span class="hl">[paste your code]</span>
+
+Convert this to n8n node field expressions where possible.
+
+For each piece of logic, tell me:
+1. Can it be expressed as a simple {{ $json.field }} expression?
+2. Can it use a ternary: {{ $json.field ? 'value' : 'default' }}?
+3. Does it need to stay in a Code node (complex logic, loops, external references)?
+4. Which n8n node type is best for this operation?
+
+Output:
+- A list of fields that can move to expressions in the downstream node
+- The remaining Code node (slimmed down to only what cannot be expressed)
+- Any n8n built-in nodes that could replace Code node sections entirely
+  (Set node, IF node, Switch node, Merge node)</div>
+      <div class="card-footer">
+        <div class="cf-item"><div class="cf-dot green"></div>Simplification tool</div>
+        <div class="cf-item"><div class="cf-dot amber"></div>Cleaner workflows</div>
+        <div class="cf-item"><div class="cf-dot blue"></div>n8n best practices</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <div class="footer-col-title">About this collection</div>
+    <div class="footer-col-text">
+      Every prompt in this collection was extracted from a real 4-month build of the Email Intelligence Hub v4.0 — a production-grade Gmail automation system with AI classification, draft generation, SLA monitoring, and approval workflows built on n8n + OpenRouter + PostgreSQL.
+    </div>
+  </div>
+  <div>
+    <div class="footer-col-title">How to use these prompts</div>
+    <div class="footer-col-text">
+      Stack them in order to build a complete system. Start with Prompt 01 for architecture, then 02 for database, then 03-05 for the AI pipeline. Each prompt is self-contained but designed to chain. Replace all [bracketed] placeholders with your specifics before running.
+    </div>
+  </div>
+</div>
+
+<div class="sign">
+  <div>
+    <div class="sign-text">Email Intelligence Hub · Community Edition</div>
+    <div class="sign-mono" style="margin-top:4px">Built with n8n · OpenRouter · PostgreSQL · Claude</div>
+  </div>
+  <div style="text-align:right">
+    <div class="sign-text">Akshat Jain</div>
+    <div class="sign-mono" style="margin-top:4px">PharmaOS · March 2026</div>
+  </div>
+</div>
+
+<script>
+function copyPrompt(btn, id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Get text content (strips HTML tags)
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
